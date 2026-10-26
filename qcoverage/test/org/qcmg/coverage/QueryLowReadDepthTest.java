@@ -6,7 +6,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.commandline.Executor;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.record.RecordWriter;
 
@@ -60,8 +59,8 @@ public class QueryLowReadDepthTest {
         }
     }
 
-    private Executor execute(final String command) throws Exception {
-        return new Executor(command, "org.qcmg.coverage.Coverage");
+    private int execute(final String command) throws Exception {
+        return Coverage.run(command.split(" "));
     }
 
     @Test
@@ -70,9 +69,9 @@ public class QueryLowReadDepthTest {
         File fOutput = new File(fname);
         String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 12 --query and(flag_DuplicateRead==false,flag_NotprimaryAlignment==false,MAPQ>10)";
 
-        Executor exec = execute(cmd);
+        int errCode = execute(cmd);
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
         assertTrue(fOutput.exists());
 
         List<String> fileContents;
@@ -93,9 +92,9 @@ public class QueryLowReadDepthTest {
         File fOutput = new File(fname);
         String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 8 --query and(flag_DuplicateRead==false,flag_NotprimaryAlignment==false,MAPQ>10)";
 
-        Executor exec = execute(cmd);
+        int errCode = execute(cmd);
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
         assertTrue(fOutput.exists());
 
         List<String> fileContents;

@@ -30,13 +30,14 @@ import java.util.*;
 public final class Coverage {
 	private final Options options;
 	private final JobQueue jobQueue;
+	private final Configuration configuration;
 
 	public Coverage(final Options options) throws Exception {
 		options.detectBadOptions();
 		this.options = options;
-		Configuration invariants = new Configuration(options);
-		jobQueue = new JobQueue(invariants);
-		saveCoverageReport(invariants.getCoverageType());
+		configuration = new Configuration(options);
+		jobQueue = new JobQueue(configuration);
+		saveCoverageReport();
 	}
 	
 	/**
@@ -53,8 +54,8 @@ public final class Coverage {
 				fname : fname + extension;
 	}
 
-	private void writePerFeatureTabDelimitedCoverageReport( final QCoverageStats stats) throws IOException {
-		String foutput = fileNameCorrection(options.getOutputFileNames()[0], "txt");
+	private void writePerFeatureTabDelimitedCoverageReport(final QCoverageStats stats, final String outputFileName) throws IOException {
+		String foutput = fileNameCorrection(outputFileName, "txt");
 		final File file = new File(foutput);
 		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
 			out.write("#coveragetype\tnumberofbases\tcoverage\n");
@@ -75,8 +76,8 @@ public final class Coverage {
 		}
 	}
 
-	private void writePerTypeTabDelimitedCoverageReport(final QCoverageStats stats) throws IOException {
-		String foutput = fileNameCorrection(options.getOutputFileNames()[0], "txt");
+	private void writePerTypeTabDelimitedCoverageReport(final QCoverageStats stats, final String outputFileName) throws IOException {
+		String foutput = fileNameCorrection(outputFileName, "txt");
 		final File file = new File(foutput);
 		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
 			out.write("#coveragetype\tfeaturetype\tnumberofbases\tcoverage\n");
@@ -97,11 +98,15 @@ public final class Coverage {
 		}
 	}
 
-	private void writeXMLCoverageReport(final QCoverageStats report) throws JAXBException, IOException {
-		writeXMLCoverageReport(report, fileNameCorrection(options.getOutputFileNames()[0], "xml"));
+	public static void writeXMLCoverageReport(final QCoverageStats report, String outputFile) throws IOException, jakarta.xml.bind.JAXBException {
+		writeXMLCoverageReportStatic(report, outputFile);
 	}
 
-	public static void writeXMLCoverageReport(final QCoverageStats report, String outputFile) throws IOException, jakarta.xml.bind.JAXBException {
+	private void writeXMLCoverageReportInstance(final QCoverageStats report, final String outputFileName) throws JAXBException, IOException {
+		writeXMLCoverageReportStatic(report, fileNameCorrection(outputFileName, "xml"));
+	}
+
+	public static void writeXMLCoverageReportStatic(final QCoverageStats report, String outputFile) throws IOException, jakarta.xml.bind.JAXBException {
 		jakarta.xml.bind.JAXBContext context = JAXBContextFactory
 				.createContext(new Class[] {CoverageReport.class, CoverageModel.class, QCoverageStats.class}, null);
 		final Marshaller m = context.createMarshaller();
@@ -115,8 +120,9 @@ public final class Coverage {
 		}
 	}
 
-	private void writeVCFReport(final QCoverageStats report) throws Exception {
-		String foutput = fileNameCorrection(options.getOutputFileNames()[0], "vcf");
+
+	private void writeVCFReport(final QCoverageStats report, final String outputFileName) throws Exception {
+		String foutput = fileNameCorrection(outputFileName, "vcf");
 		final File file = new File(foutput);
 
 		final List<VcfRecord> vcfs = new ArrayList<>();
@@ -198,56 +204,83 @@ public final class Coverage {
 		return vcf;
 	}
 
-	private void saveCoverageReport(CoverageType coverageType) throws Exception {
+	private void saveCoverageReport() throws Exception {
 
-		//save low read depth bed file
-		if (coverageType.equals(CoverageType.LOW_READDEPTH)) {
+		final Map<CoverageType, List<CoverageReport>> reportsByType = jobQueue.getCoverageReport();
+		final Map<Object, HashMap<String, List<LowReadDepthRegion>>> lowReadDepthByType = jobQueue.getLowReadDepthResultsFinalMap();
 
-			String outfile = options.getOutputFileNames()[0];
-			if (!outfile.endsWith(".bed")) {
-				outfile = outfile + ".bed";
-			}
-
-			final HashMap<String, List<LowReadDepthRegion>> lowReadDepthResultsFinalMap = jobQueue.getLowReadDepthResultsFinalMap();
-			LinkedHashSet<String> refNamesOrdered = jobQueue.getRefNamesOrdered();
-
-			try (final BufferedWriter out = new BufferedWriter(new FileWriter(outfile))) {
-				for (String refName : refNamesOrdered) {
-					List<LowReadDepthRegion> lowReadDepthValues = lowReadDepthResultsFinalMap.get(refName);
-					if (lowReadDepthValues == null) {
-						continue;
-					}
-					//start and end so that bed is in correct order
-					lowReadDepthValues.sort(new LowReadDepthRegionComparator(refNamesOrdered));
-						for (final LowReadDepthRegion region : lowReadDepthValues) {
-							out.write(region.toBedString() + StringUtils.RETURN);
-						}
-				}
-			}
-		} else {
-			//save coverage report
-			final QCoverageStats stats = new QCoverageStats();
-			for (final CoverageReport report : jobQueue.getCoverageReport()) {
-				stats.getCoverageReport().add(report);
-			}
-			if (options.hasVcfFlag() && options.hasPerFeatureOption()) {
-				writeVCFReport(stats);
-			}
-
-			if (options.hasXmlFlag()) {
-				writeXMLCoverageReport(stats);
-			}
-
-			if (options.hasTxtFlag()) {
-				if( options.hasPerFeatureOption()) writePerFeatureTabDelimitedCoverageReport(stats);
-				else writePerTypeTabDelimitedCoverageReport(stats);
+		for (final Map.Entry<Object, Algorithm> entry : configuration.getAlgorithms().entrySet()) {
+			Object key = entry.getKey();
+			final CoverageType coverageType = getCoverageType(key);
+			final String outputFileName = configuration.getOutputFileName(key);
+			if (coverageType.equals(CoverageType.LOW_READDEPTH)) {
+				saveLowReadDepthReport(outputFileName, lowReadDepthByType.get(key));
+			} else {
+				saveStandardReport(outputFileName, reportsByType.get(coverageType));
 			}
 		}
-		
 
+	}
 
+	private static CoverageType getCoverageType(Object k) {
+		if (k instanceof Configuration.CoverageTypeKey) {
+			return ((Configuration.CoverageTypeKey) k).type;
+		}
+		if (k instanceof CoverageType) {
+			return (CoverageType) k;
+		}
+		return null;
 
-		
+	}
+
+	private void saveLowReadDepthReport(final String outputFileName,
+			final HashMap<String, List<LowReadDepthRegion>> lowReadDepthResultsFinalMap) throws Exception {
+		String outfile = outputFileName;
+		if (!outfile.endsWith(".bed")) {
+			outfile = outfile + ".bed";
+		}
+
+		LinkedHashSet<String> refNamesOrdered = jobQueue.getRefNamesOrdered();
+
+		try (final BufferedWriter out = new BufferedWriter(new FileWriter(outfile))) {
+			for (String refName : refNamesOrdered) {
+				List<LowReadDepthRegion> lowReadDepthValues = null == lowReadDepthResultsFinalMap
+						? null : lowReadDepthResultsFinalMap.get(refName);
+				if (lowReadDepthValues == null) {
+					continue;
+				}
+				//start and end so that bed is in correct order
+				lowReadDepthValues.sort(new LowReadDepthRegionComparator(refNamesOrdered));
+				for (final LowReadDepthRegion region : lowReadDepthValues) {
+					out.write(region.toBedString() + StringUtils.RETURN);
+				}
+			}
+		}
+	}
+
+	private void saveStandardReport(final String outputFileName, final List<CoverageReport> coverageReports) throws Exception {
+		//save coverage report
+		final QCoverageStats stats = new QCoverageStats();
+		if (null != coverageReports) {
+			for (final CoverageReport report : coverageReports) {
+				stats.getCoverageReport().add(report);
+			}
+		}
+		if (options.hasVcfFlag() && options.hasPerFeatureOption()) {
+			writeVCFReport(stats, outputFileName);
+		}
+
+		if (options.hasXmlFlag()) {
+			writeXMLCoverageReportInstance(stats, outputFileName);
+		}
+
+		if (options.hasTxtFlag()) {
+			if (options.hasPerFeatureOption()) {
+				writePerFeatureTabDelimitedCoverageReport(stats, outputFileName);
+			} else {
+				writePerTypeTabDelimitedCoverageReport(stats, outputFileName);
+			}
+		}
 	}
 
 	private static Options moptions = null;
@@ -256,7 +289,15 @@ public final class Coverage {
 	private static QLogger mlogger = null;
 	
 	
-	public static void main(final String[] args) throws Exception {
+	/**
+	 * Run qcov in-process, returning the exit code instead of calling
+	 * {@link System#exit(int)}. Used by tests to avoid JVM startup overhead.
+	 *
+	 * @param args command line arguments
+	 * @return exit status (0 = success, non-zero = failure)
+	 */
+	public static int run(final String[] args) {
+		exitStatus = 1; // reset for each invocation (tests run in-process sequentially)
 		try {
 			moptions = new Options(args);
 			if (moptions.hasHelpOption()) {
@@ -280,7 +321,11 @@ public final class Coverage {
 		if (performLogging && null != mlogger) {
 			mlogger.logFinalExecutionStats(exitStatus);
 		}
-		System.exit(exitStatus);
+		return exitStatus;
+	}
+
+	public static void main(final String[] args) throws Exception {
+		System.exit(run(args));
 	}
 
 	private static String chooseErrorMessage(Throwable e) {

@@ -2,7 +2,6 @@ package org.qcmg.coverage;
 
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 import org.junit.*;
-import org.qcmg.common.commandline.Executor;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.record.RecordWriter;
 
@@ -73,18 +72,17 @@ public class PerFeaturePhysicalCoverageTest {
 		}
 	}
 
-	private Executor execute(final String command) throws Exception {
-		return new Executor(command, "org.qcmg.coverage.Coverage");
-
+	private int execute(final String command) throws Exception {
+		return Coverage.run(command.split(" "));
 	}
 	
     @Test
 	public final void leftDisjointRead() throws Exception {
 		createGFF3File(54000, 54025);
 
-		Executor exec = execute(getCmd(54000, 54025));
+		int errCode = execute(getCmd(54000, 54025));
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
@@ -101,9 +99,9 @@ public class PerFeaturePhysicalCoverageTest {
 	public final void rightDisjointRead() throws Exception {
     	createGFF3File(54077, 54120);
 
-		Executor exec = execute(getCmd(54077, 54120));
+		int errCode = execute(getCmd(54077, 54120));
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
@@ -121,9 +119,9 @@ public class PerFeaturePhysicalCoverageTest {
 	public final void leftOnEndRead() throws Exception {
 		createGFF3File(54000, 54026);
 
-		Executor exec = execute(getCmd(54000, 54026));
+		int errCode = execute(getCmd(54000, 54026));
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
@@ -141,9 +139,9 @@ public class PerFeaturePhysicalCoverageTest {
 	public final void rightOnEndRead() throws Exception {
     	createGFF3File(54076, 54120);
 
-		Executor exec = execute(getCmd(54076, 54120));
+		int errCode = execute(getCmd(54076, 54120));
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
@@ -160,9 +158,9 @@ public class PerFeaturePhysicalCoverageTest {
 	public final void leftOverlapRead() throws Exception {
      	createGFF3File(54000, 54036);
 
-		Executor exec = execute(getCmd(54000, 54036));
+		int errCode = execute(getCmd(54000, 54036));
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
 		assertTrue(fOutput.exists());
 
 		List<String> fileContents;
@@ -180,9 +178,9 @@ public class PerFeaturePhysicalCoverageTest {
 	public final void rightOverlapRead() throws Exception {
      	createGFF3File(54050, 54120);
 
-		Executor exec = execute(getCmd(54050, 54120));
+		int errCode = execute(getCmd(54050, 54120));
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
 		assertTrue(fOutput.exists());
 
 		List<String> fileContents;
@@ -201,9 +199,9 @@ public class PerFeaturePhysicalCoverageTest {
 	public final void subsetRead() throws Exception {
       	createGFF3File(54030, 54070);
 
-		Executor exec = execute(getCmd(54030, 54070));
+		int errCode = execute(getCmd(54030, 54070));
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
 		assertTrue(fOutput.exists());
 
 		List<String> fileContents;

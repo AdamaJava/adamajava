@@ -6,7 +6,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.commandline.Executor;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.record.RecordWriter;
 
@@ -60,8 +59,8 @@ public class LowReadDepthTest {
         }
     }
 
-    private Executor execute(final String command) throws Exception {
-        return new Executor(command, "org.qcmg.coverage.Coverage");
+    private int execute(final String command) throws Exception {
+        return Coverage.run(command.split(" "));
     }
 
     @Test
@@ -70,9 +69,9 @@ public class LowReadDepthTest {
         File fOutput = new File(fname);
         String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 8";
 
-        Executor exec = execute(cmd);
+        int errCode = execute(cmd);
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
 
         assertTrue(fOutput.exists());
 
@@ -95,9 +94,9 @@ public class LowReadDepthTest {
         File fOutput = new File(fname);
         String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 12";
 
-        Executor exec = execute(cmd);
+        int errCode = execute(cmd);
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
 
         assertTrue(fOutput.exists());
 
@@ -112,6 +111,189 @@ public class LowReadDepthTest {
 
         fOutput.delete();
 
+    }
+
+    @Test
+    public void multipleLowReadDepthsOneCutoffEach() throws Exception {
+        String fname = testFolder.getRoot().getAbsolutePath() + "/multi.bed";
+        File fOutput8 = new File(testFolder.getRoot().getAbsolutePath() + "/multi.low_readdepth8.bed");
+        File fOutput12 = new File(testFolder.getRoot().getAbsolutePath() + "/multi.low_readdepth12.bed");
+        String cmd = "--log ./logfile --type low_readdepth --type low_readdepth --input-gff3 " + gff1000To1065
+                + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname
+                + " --readdepth-cutoff 8 --readdepth-cutoff 12";
+
+        int errCode = execute(cmd);
+
+        assertEquals(0, errCode);
+        assertTrue(fOutput8.exists());
+        assertTrue(fOutput12.exists());
+
+        List<String> eight;
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput8))) {
+            eight = r.lines().toList();
+        }
+        assertEquals(2, eight.size());
+        assertEquals("chr1\t999\t1006", eight.get(0));
+        assertEquals("chr1\t1055\t1065", eight.get(1));
+
+        List<String> twelve;
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput12))) {
+            twelve = r.lines().toList();
+        }
+        assertEquals(2, twelve.size());
+        assertEquals("chr1\t999\t1010", twelve.get(0));
+        assertEquals("chr1\t1051\t1065", twelve.get(1));
+
+        fOutput8.delete();
+        fOutput12.delete();
+    }
+
+    @Test
+    public void multipleLowReadDepthsSharedCutoff() throws Exception {
+        String fname = testFolder.getRoot().getAbsolutePath() + "/shared.bed";
+        File fOutput0 = new File(testFolder.getRoot().getAbsolutePath() + "/shared.low_readdepth0.bed");
+        File fOutput1 = new File(testFolder.getRoot().getAbsolutePath() + "/shared.low_readdepth1.bed");
+        String cmd = "--log ./logfile --type low_readdepth --type low_readdepth --input-gff3 " + gff1000To1065
+                + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname
+                + " --readdepth-cutoff 8";
+
+        int errCode = execute(cmd);
+
+        assertEquals(0, errCode);
+        assertTrue(fOutput0.exists());
+        assertTrue(fOutput1.exists());
+
+        List<String> contents0;
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput0))) {
+            contents0 = r.lines().toList();
+        }
+        List<String> contents1;
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput1))) {
+            contents1 = r.lines().toList();
+        }
+        assertEquals(contents0, contents1);
+        assertEquals(2, contents0.size());
+
+        fOutput0.delete();
+        fOutput1.delete();
+    }
+
+    @Test
+    public void multipleLowReadDepthsSeparateOutputs() throws Exception {
+        String root = testFolder.getRoot().getAbsolutePath();
+        File fOutput8 = new File(root + "/eight.bed");
+        File fOutput12 = new File(root + "/twelve.bed");
+        String cmd = "--log ./logfile --type low_readdepth --type low_readdepth --input-gff3 " + gff1000To1065
+                + " --input-bam " + bam + " --input-bai " + bai
+                + " --output " + fOutput8.getAbsolutePath() + " --output " + fOutput12.getAbsolutePath()
+                + " --readdepth-cutoff 8 --readdepth-cutoff 12";
+
+        int errCode = execute(cmd);
+
+        assertEquals(0, errCode);
+        assertTrue(fOutput8.exists());
+        assertTrue(fOutput12.exists());
+
+        List<String> eight;
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput8))) {
+            eight = r.lines().toList();
+        }
+        assertEquals("chr1\t1055\t1065", eight.get(1));
+
+        List<String> twelve;
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput12))) {
+            twelve = r.lines().toList();
+        }
+        assertEquals("chr1\t1051\t1065", twelve.get(1));
+
+        fOutput8.delete();
+        fOutput12.delete();
+    }
+
+    @Test
+    public void multipleCutoffsOneLowReadDepthType() throws Exception {
+        String root = testFolder.getRoot().getAbsolutePath();
+        File fOutput8 = new File(root + "/comma.low_readdepth8.bed");
+        File fOutput12 = new File(root + "/comma.low_readdepth12.bed");
+        String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065
+                + " --input-bam " + bam + " --input-bai " + bai + " --output " + root + "/comma.bed"
+                + " --readdepth-cutoff 8,12";
+
+        int errCode = execute(cmd);
+
+        assertEquals(0, errCode);
+        assertTrue(fOutput8.exists());
+        assertTrue(fOutput12.exists());
+
+        List<String> eight;
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput8))) {
+            eight = r.lines().toList();
+        }
+        assertEquals(2, eight.size());
+        assertEquals("chr1\t999\t1006", eight.get(0));
+        assertEquals("chr1\t1055\t1065", eight.get(1));
+
+        List<String> twelve;
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput12))) {
+            twelve = r.lines().toList();
+        }
+        assertEquals(2, twelve.size());
+        assertEquals("chr1\t999\t1010", twelve.get(0));
+        assertEquals("chr1\t1051\t1065", twelve.get(1));
+
+        fOutput8.delete();
+        fOutput12.delete();
+    }
+
+    @Test
+    public void multipleCutoffsOneLowReadDepthTypeSeparateOutputs() throws Exception {
+        String root = testFolder.getRoot().getAbsolutePath();
+        File fOutput8 = new File(root + "/comma8.bed");
+        File fOutput12 = new File(root + "/comma12.bed");
+        String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065
+                + " --input-bam " + bam + " --input-bai " + bai
+                + " --output " + fOutput8.getAbsolutePath() + " --output " + fOutput12.getAbsolutePath()
+                + " --readdepth-cutoff 8,12";
+
+        int errCode = execute(cmd);
+
+        assertEquals(0, errCode);
+        assertTrue(fOutput8.exists());
+        assertTrue(fOutput12.exists());
+
+        List<String> eight;
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput8))) {
+            eight = r.lines().toList();
+        }
+        assertEquals("chr1\t1055\t1065", eight.get(1));
+
+        List<String> twelve;
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput12))) {
+            twelve = r.lines().toList();
+        }
+        assertEquals("chr1\t1051\t1065", twelve.get(1));
+
+        fOutput8.delete();
+        fOutput12.delete();
+    }
+
+    @Test
+    public void lowReadDepthWithSequenceCoverage() throws Exception {
+        String root = testFolder.getRoot().getAbsolutePath();
+        File fBed = new File(root + "/mixed.low_readdepth.bed");
+        File fTxt = new File(root + "/mixed.sequence.txt");
+        String cmd = "--log ./logfile --type sequence --type low_readdepth --input-gff3 " + gff1000To1065
+                + " --input-bam " + bam + " --input-bai " + bai + " --output " + root + "/mixed"
+                + " --readdepth-cutoff 8";
+
+        int errCode = execute(cmd);
+
+        assertEquals(0, errCode);
+        assertTrue(fBed.exists());
+        assertTrue(fTxt.exists());
+
+        fBed.delete();
+        fTxt.delete();
     }
 
     public static void createCoverageBam(String outputFileName, List<SAMRecord> recs, SAMFileHeader h) {

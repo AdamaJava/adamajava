@@ -4,6 +4,7 @@
 package org.qcmg.coverage;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,7 +43,7 @@ public final class Options {
 	private final String log;
 	private String query;
 	private String validation;
-	private Integer lowReadDepthCutoff;
+	private Integer[] lowReadDepthCutoffs;
 
 	
 	@Deprecated
@@ -75,7 +76,7 @@ public final class Options {
 		parser.accepts("thread", NUMBER_THREADS_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("per-feature", PER_FEATURE_OPTION_DESCRIPTION);
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("readdepth-cutoff", LOW_READ_DEPTH_OPTION_DESCRIPTION).withOptionalArg().ofType(Integer.class);
+		parser.accepts("readdepth-cutoff", LOW_READ_DEPTH_OPTION_DESCRIPTION).withOptionalArg();
 
 
 
@@ -120,7 +121,30 @@ public final class Options {
 			query = (String) options.valueOf("query");
 			validation = (String) options.valueOf("validation");
 
-			lowReadDepthCutoff = (Integer) options.valueOf("readdepth-cutoff");
+			List<?> lowReadDepthList = options.valuesOf("readdepth-cutoff");
+			if (null == lowReadDepthList || lowReadDepthList.isEmpty()) {
+				lowReadDepthCutoffs = null;
+			} else {
+				ArrayList<Integer> cutoffs = new ArrayList<>();
+				for (Object o : lowReadDepthList) {
+					if (null == o) {
+						continue;
+					}
+					String s = o.toString();
+					if (s.contains(",")) {
+						String[] parts = s.split(",");
+						for (String p : parts) {
+							p = p.trim();
+							if (!p.isEmpty()) {
+								cutoffs.add(Integer.parseInt(p));
+							}
+						}
+					} else {
+						cutoffs.add(Integer.parseInt(s));
+					}
+				}
+				lowReadDepthCutoffs = cutoffs.toArray(new Integer[0]);
+			}
 		}
 	}
 
@@ -230,8 +254,15 @@ public final class Options {
 		return outputFileNames;
 	}
 
+	public Integer[] getLowReadDepthCutoffs() {
+		return lowReadDepthCutoffs;
+	}
+
 	public Integer getLowReadDepthCutoff() {
-		return lowReadDepthCutoff;
+		if (null == lowReadDepthCutoffs || 0 == lowReadDepthCutoffs.length) {
+			return null;
+		}
+		return lowReadDepthCutoffs[0];
 	}
 
 	public void displayHelp() throws Exception {
@@ -284,22 +315,32 @@ public final class Options {
 		if (!hasTypeOption()) {
 			throw new Exception("Missing type option");
 		}
-		if (1 != getTypes().length) {
-			throw new Exception("Only one type option can be provided");
+		if (0 == getTypes().length) {
+			throw new Exception("Missing type option");
 		}
-		String type = getTypes()[0];
 		List<String> validTypes = Arrays.asList("seq", "low_readdepth", "sequence","physical","phys","segmenter");
 
-		if (!validTypes.contains(type)) {
-			throw new IllegalArgumentException("Invalid type: " + type + ". Valid types are: " + validTypes);
+		long lowReadDepthRequested = 0;
+		for (final String type : getTypes()) {
+			if (!validTypes.contains(type)) {
+				throw new IllegalArgumentException("Invalid type: " + type + ". Valid types are: " + validTypes);
+			}
+			if (type.equals("low_readdepth")) {
+				lowReadDepthRequested++;
+			}
 		}
 
-		if (type.equals("low_readdepth") && !hasLowReadDepthOption()) {
-			throw new Exception("Missing low read depth cutoff option when running low_readdepth coverage type");
-		}
-
-		if (!type.equals("low_readdepth") && hasLowReadDepthOption()) {
+		if (0 == lowReadDepthRequested && hasLowReadDepthOption()) {
 			throw new Exception("Low read depth cutoff option should only be used for low_readdepth coverage type");
+		}
+		if (0 < lowReadDepthRequested) {
+			if (!hasLowReadDepthOption()) {
+				throw new Exception("Missing low read depth cutoff option when running low_readdepth coverage type");
+			}
+			if (null != lowReadDepthCutoffs && lowReadDepthCutoffs.length > 1
+					&& lowReadDepthRequested != 1 && lowReadDepthRequested != lowReadDepthCutoffs.length) {
+				throw new Exception("Either a single cutoff for all low_readdepth types, or one cutoff per low_readdepth type, should be provided");
+			}
 		}
 
 		if (!hasInputBAMOption()) {
@@ -310,6 +351,20 @@ public final class Options {
 		}
 		if (!hasOutputOption()) {
 			throw new Exception("Missing output option");
+		}
+		// a single low_readdepth type with several cutoffs results in one coverage per cutoff
+		final int numberOfCoverageTypes = getTypes().length
+				+ ((lowReadDepthRequested == 1 && null != lowReadDepthCutoffs && lowReadDepthCutoffs.length > 1)
+						? lowReadDepthCutoffs.length - 1 : 0);
+		// either a single output file is provided, in which case the file names of the
+		// individual coverage types are derived from it, or one output file is provided
+		// for each of the coverage types
+		final int numberOfOutputFiles = getOutputFileNames().length;
+		if (numberOfOutputFiles > numberOfCoverageTypes) {
+			throw new Exception("More output files have been specified than coverage types");
+		}
+		if (1 < numberOfOutputFiles && numberOfOutputFiles != numberOfCoverageTypes) {
+			throw new Exception("Either a single output file, or one output file per coverage type, should be provided");
 		}
 		if (1 != getInputGFF3FileNames().length) {
 			throw new Exception("Only one input GFF3 file should be provided");

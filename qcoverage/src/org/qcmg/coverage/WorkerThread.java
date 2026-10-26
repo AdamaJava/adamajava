@@ -12,11 +12,11 @@ import org.qcmg.common.log.QLoggerFactory;
 
 class WorkerThread extends Thread {
 	private final BlockingQueue<Job> inputQueue;
-	private final HashMap<String, TreeMap<Integer, AtomicLong>> reducedResults = new HashMap<>();
-	private final HashMap<String, List<LowReadDepthRegion>> reducedLowReadDepthResults = new HashMap<>();
+	private final Map<Object, HashMap<String, TreeMap<Integer, AtomicLong>>> reducedResults = new LinkedHashMap<>();
+	private final Map<Object, HashMap<String, List<LowReadDepthRegion>>> reducedLowReadDepthResults = new LinkedHashMap<>();
 
-	private final HashSet<HashMap<String, HashMap<Integer, AtomicLong>>> perJobResults = new HashSet<>();
-	private final HashSet<HashMap<String, List<LowReadDepthRegion>>> perJobLowReadDepthResults = new HashSet<>();
+	private final HashSet<Map<Object, HashMap<String, HashMap<Integer, AtomicLong>>>> perJobResults = new HashSet<>();
+	private final HashSet<Map<Object, HashMap<String, List<LowReadDepthRegion>>>> perJobLowReadDepthResults = new HashSet<>();
 
 	private final QLogger logger;
 	private final Thread mainThread;
@@ -28,11 +28,11 @@ class WorkerThread extends Thread {
 		this.mainThread = mainThread;
 	}
 
-	public HashMap<String, TreeMap<Integer, AtomicLong>> getReducedResults() {
+	public Map<Object, HashMap<String, TreeMap<Integer, AtomicLong>>> getReducedResults() {
 		return reducedResults;
 	}
 
-	public HashMap<String, List<LowReadDepthRegion>> getReducedLowReadDepthResults() {
+	public Map<Object, HashMap<String, List<LowReadDepthRegion>>> getReducedLowReadDepthResults() {
 		return reducedLowReadDepthResults;
 	}
 
@@ -54,9 +54,9 @@ class WorkerThread extends Thread {
 				perJobResults.add(job.getResults());
 				perJobLowReadDepthResults.add(job.getLowReadDepthResults());
 				logger.debug(getName() + " added job results. Results size: "
-						+ job.getResults().size());
+						+ totalResultsSize(job.getResults()));
 				logger.debug(getName() + " added job low read depth results. Results size: "
-						+ job.getLowReadDepthResults().size());
+						+ totalLowReadDepthResultsSize(job.getLowReadDepthResults()));
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e.getMessage());
 			} catch (Exception e) {
@@ -69,24 +69,46 @@ class WorkerThread extends Thread {
 	}
 
 	private void reduceResults() {
-		for (HashMap<String, HashMap<Integer, AtomicLong>> mappedResult : perJobResults) {
-			for (String id : mappedResult.keySet()) {
-                TreeMap<Integer, AtomicLong> covToBaseCountMap = reducedResults.computeIfAbsent(id, k -> new TreeMap<>());
-                for (Integer cov : mappedResult.get(id).keySet()) {
-                    AtomicLong reducedBaseCount = covToBaseCountMap.computeIfAbsent(cov, k -> new AtomicLong());
-                    AtomicLong mappedBaseCount = mappedResult.get(id).get(cov);
-					assert (null != mappedBaseCount); // Implicit to above logic
-					reducedBaseCount.addAndGet(mappedBaseCount.get());
+		for (Map<Object, HashMap<String, HashMap<Integer, AtomicLong>>> mappedResult : perJobResults) {
+			for (Map.Entry<Object, HashMap<String, HashMap<Integer, AtomicLong>>> typeEntry : mappedResult.entrySet()) {
+				HashMap<String, TreeMap<Integer, AtomicLong>> perIdMap = reducedResults
+						.computeIfAbsent(typeEntry.getKey(), k -> new HashMap<>());
+				for (Map.Entry<String, HashMap<Integer, AtomicLong>> idEntry : typeEntry.getValue().entrySet()) {
+					TreeMap<Integer, AtomicLong> covToBaseCountMap = perIdMap
+							.computeIfAbsent(idEntry.getKey(), k -> new TreeMap<>());
+					for (Map.Entry<Integer, AtomicLong> covEntry : idEntry.getValue().entrySet()) {
+						AtomicLong reducedBaseCount = covToBaseCountMap.computeIfAbsent(covEntry.getKey(), k -> new AtomicLong());
+						reducedBaseCount.addAndGet(covEntry.getValue().get());
+					}
 				}
 			}
 		}
 		//Reduce results for low read depth if run
-		for (HashMap<String, List<LowReadDepthRegion>> mappedLowReadDepthResult : perJobLowReadDepthResults) {
-			for (String key : mappedLowReadDepthResult.keySet()) {
-
-                List<LowReadDepthRegion> lowReadDepthRegions = reducedLowReadDepthResults.computeIfAbsent(key, k -> new ArrayList<>());
-                lowReadDepthRegions.addAll(mappedLowReadDepthResult.get(key));
+		for (Map<Object, HashMap<String, List<LowReadDepthRegion>>> mappedLowReadDepthResult : perJobLowReadDepthResults) {
+			for (Map.Entry<Object, HashMap<String, List<LowReadDepthRegion>>> typeEntry : mappedLowReadDepthResult.entrySet()) {
+				HashMap<String, List<LowReadDepthRegion>> lowReadDepthResults = reducedLowReadDepthResults
+						.computeIfAbsent(typeEntry.getKey(), k -> new HashMap<>());
+				for (Map.Entry<String, List<LowReadDepthRegion>> refEntry : typeEntry.getValue().entrySet()) {
+					List<LowReadDepthRegion> lowReadDepthRegions = lowReadDepthResults.computeIfAbsent(refEntry.getKey(), k -> new ArrayList<>());
+					lowReadDepthRegions.addAll(refEntry.getValue());
+				}
 			}
 		}
+	}
+
+	private int totalResultsSize(final Map<Object, HashMap<String, HashMap<Integer, AtomicLong>>> results) {
+		int count = 0;
+		for (final HashMap<String, HashMap<Integer, AtomicLong>> map : results.values()) {
+			count += map.size();
+		}
+		return count;
+	}
+
+	private int totalLowReadDepthResultsSize(final Map<Object, HashMap<String, List<LowReadDepthRegion>>> results) {
+		int count = 0;
+		for (final HashMap<String, List<LowReadDepthRegion>> map : results.values()) {
+			count += map.size();
+		}
+		return count;
 	}
 }

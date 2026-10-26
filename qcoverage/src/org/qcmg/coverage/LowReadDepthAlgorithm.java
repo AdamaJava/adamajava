@@ -6,8 +6,6 @@
  */
 package org.qcmg.coverage;
 
-import htsjdk.samtools.SAMRecord;
-
 public class LowReadDepthAlgorithm implements Algorithm {
 
 	private final int readdepth_cutoff;
@@ -26,28 +24,13 @@ public class LowReadDepthAlgorithm implements Algorithm {
 		return CoverageType.LOW_READDEPTH;
 	}
 
-//	@Override
-//	public void applyTo(final SAMRecord read, final int[] perBaseCoverages) {
 	@Override
-	public void applyTo(final SAMRecord read, Object perBaseCoveragesObj) {
-		
-		int[] perBaseCoverages = (int[]) perBaseCoveragesObj;
-		final int readStart = read.getAlignmentStart();
-		if (readStart > 0) {
-			// check that read end is not greater than array length.
-			// if it is, limit loop iteration to end of array
-			final int loopEnd =  Math.min(read.getAlignmentEnd(), perBaseCoverages.length);
-			for (int pos = readStart - 1 ; pos < loopEnd ; pos++) {
-				if (-1 < perBaseCoverages[pos]) {
-					perBaseCoverages[pos] ++;
-				}
-			}
+	public void applyTo(final int alignmentStart, final int alignmentEnd, final int insertSize,
+			final boolean paired, final int[] differenceArray) {
+		if (alignmentStart <= 0) {
+			return;
 		}
-	}
-	
-	@Override
-	public void applyTo(final SAMRecord read, Object perBaseCoverages, boolean fullyPopulated) {
-		applyTo(read, perBaseCoverages);
+		Algorithm.addRange(differenceArray, alignmentStart, alignmentEnd);
 	}
 
 	public int getReaddepthCutoff() {

@@ -5,11 +5,18 @@ package org.qcmg.coverage;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 interface Job {
-	HashMap<String, HashMap<Integer, AtomicLong>> getResults();
-	HashMap<String, List<LowReadDepthRegion>> getLowReadDepthResults();
+	/**
+	 * @return the coverage results, keyed by coverage type
+	 */
+	Map<Object, HashMap<String, HashMap<Integer, AtomicLong>>> getResults();
+	/**
+	 * @return the low read depth results, keyed by coverage type
+	 */
+	Map<Object, HashMap<String, List<LowReadDepthRegion>>> getLowReadDepthResults();
 	void run() throws Exception;
 	String toString();
 }

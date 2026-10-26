@@ -6,7 +6,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.commandline.Executor;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.record.RecordWriter;
 
@@ -89,17 +88,17 @@ public class SequenceCoverageTest {
         }
     }
 
-    private Executor execute(final String command) throws Exception {
-        return new Executor(command, "org.qcmg.coverage.Coverage");
+    private int execute(final String command) throws Exception {
+        return Coverage.run(command.split(" "));
     }
 
     @Test
     public void beforeReadsStart() throws Exception {
         String fname = testFolder.getRoot().getAbsolutePath() + "/output";
         File fOutput = new File(fname + ".txt");
-        Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54000To54025 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
+        int errCode = execute("--log ./logfile --type seq --input-gff3 " + gff54000To54025 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
         assertTrue(fOutput.exists());
 
         List<String> fileContents;
@@ -119,9 +118,9 @@ public class SequenceCoverageTest {
         String fname = testFolder.getRoot().getAbsolutePath() + "/output";
         File fOutput = new File(fname + ".txt");
 
-        Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54030To54070 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
+        int errCode = execute("--log ./logfile --type seq --input-gff3 " + gff54030To54070 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
         assertTrue(fOutput.exists());
 
         List<String> fileContents;
@@ -142,8 +141,8 @@ public class SequenceCoverageTest {
         File fOutput = new File(fname + ".txt");
 
 
-        Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54077To54120 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
-        assertEquals(0, exec.getErrCode());
+        int errCode = execute("--log ./logfile --type seq --input-gff3 " + gff54077To54120 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
+        assertEquals(0, errCode);
 
         assertTrue(fOutput.exists());
         List<String> fileContents;
@@ -164,8 +163,8 @@ public class SequenceCoverageTest {
         File fOutput = new File(fname + ".txt");
 
 
-        Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54000To54026 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
-        assertEquals(0, exec.getErrCode());
+        int errCode = execute("--log ./logfile --type seq --input-gff3 " + gff54000To54026 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
+        assertEquals(0, errCode);
 
         assertTrue(fOutput.exists());
         List<String> fileContents;
@@ -185,9 +184,9 @@ public class SequenceCoverageTest {
         String fname = testFolder.getRoot().getAbsolutePath() + "/output";
         File fOutput = new File(fname + ".txt");
 
-        Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54076To54120 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
+        int errCode = execute("--log ./logfile --type seq --input-gff3 " + gff54076To54120 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
         assertTrue(fOutput.exists());
 
         List<String> fileContents;
@@ -206,9 +205,9 @@ public class SequenceCoverageTest {
         String fname = testFolder.getRoot().getAbsolutePath() + "/output";
         File fOutput = new File(fname + ".txt");
 
-        Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54000To54036 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
+        int errCode = execute("--log ./logfile --type seq --input-gff3 " + gff54000To54036 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
         assertTrue(fOutput.exists());
 
         List<String> fileContents;
@@ -228,9 +227,9 @@ public class SequenceCoverageTest {
         String fname = testFolder.getRoot().getAbsolutePath() + "/output";
         File fOutput = new File(fname + ".txt");
 
-        Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54050To54120 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
+        int errCode = execute("--log ./logfile --type seq --input-gff3 " + gff54050To54120 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
         assertTrue(fOutput.exists());
 
         List<String> fileContents;
@@ -250,9 +249,9 @@ public class SequenceCoverageTest {
         String fname = testFolder.getRoot().getAbsolutePath() + "/output";
         File fOutput = new File(fname + ".txt");
 
-        Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54030To54070 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
+        int errCode = execute("--log ./logfile --type seq --input-gff3 " + gff54030To54070 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname);
 
-        assertEquals(0, exec.getErrCode());
+        assertEquals(0, errCode);
         assertTrue(fOutput.exists());
 
         List<String> fileContents;

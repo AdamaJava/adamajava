@@ -16,6 +16,7 @@ public class PhysicalCoverageAlgorithmTest {
 		PhysicalCoverageAlgorithm algorithm = new PhysicalCoverageAlgorithm();
 		int [] arrayNew = new int[1024];
 		int [] arrayOld = new int[1024];
+		int [] mask = new int[1024];
 		SAMRecord rec = new SAMRecord(null);
 		
 		rec.setAlignmentStart(1);
@@ -25,13 +26,7 @@ public class PhysicalCoverageAlgorithmTest {
 		algorithm.applyTo(rec, arrayNew);
 		applyToOld(rec, arrayOld);
 		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			Assert.assertEquals((i < 40 ) ? 1 : 0, arrayNew[i]);
-		}
-		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
-			Assert.assertEquals((i < 40 ) ? 1 : 0, arrayOld[i]);
-		}
-		Assert.assertArrayEquals(arrayOld, arrayNew);
+		Assert.assertArrayEquals(arrayOld, CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask));
 		
 		// reset arrays
 		arrayNew = new int[1024];
@@ -41,30 +36,22 @@ public class PhysicalCoverageAlgorithmTest {
 		algorithm.applyTo(rec, arrayNew);
 		applyToOld(rec, arrayOld);
 		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			Assert.assertEquals((i > 998 ) ? 1 : 0, arrayNew[i]);
-		}
-		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
-			Assert.assertEquals((i > 998 ) ? 1 : 0, arrayOld[i]);
-		}
-		Assert.assertArrayEquals(arrayOld, arrayNew);
+		Assert.assertArrayEquals(arrayOld, CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask));
 		
 		// reset arrays and set all values to -1
 		// this should mean that no coverage values are stored
 		Arrays.fill(arrayOld, -1);
-		Arrays.fill(arrayNew, -1);
+		Arrays.fill(mask, -1);
+		arrayNew = new int[1024];
 		rec.setAlignmentStart(1);
 		
 		algorithm.applyTo(rec, arrayNew);
 		applyToOld(rec, arrayOld);
 
-        for (int j : arrayNew) {
-            Assert.assertEquals(-1, j);
-        }
         for (int j : arrayOld) {
             Assert.assertEquals(-1, j);
         }
-		Assert.assertArrayEquals(arrayOld, arrayNew);
+		Assert.assertArrayEquals(arrayOld, CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask));
 	}
 	
 	
@@ -73,6 +60,7 @@ public class PhysicalCoverageAlgorithmTest {
 		PhysicalCoverageAlgorithm algorithm = new PhysicalCoverageAlgorithm();
 		int [] arrayNew = new int[1024];
 		int [] arrayOld = new int[1024];
+		int [] mask = new int[1024];
 		SAMRecord rec1 = new SAMRecord(null);
 		
 		rec1.setAlignmentStart(1);
@@ -88,13 +76,7 @@ public class PhysicalCoverageAlgorithmTest {
 		algorithm.applyTo(rec1, arrayNew);
 		applyToOld(rec1, arrayOld);
 		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			Assert.assertEquals((i <= 140 ) ? 1 : 0, arrayNew[i]);
-		}
-		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
-			Assert.assertEquals((i <= 140 ) ? 1 : 0, arrayOld[i]);
-		}
-		Assert.assertArrayEquals(arrayOld, arrayNew);
+		Assert.assertArrayEquals(arrayOld, CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask));
 		
 		// reset arrays
 		arrayNew = new int[1024];
@@ -106,30 +88,22 @@ public class PhysicalCoverageAlgorithmTest {
 		algorithm.applyTo(rec1, arrayNew);
 		applyToOld(rec1, arrayOld);
 		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			Assert.assertEquals((i >= 900 ) ? 1 : 0, arrayNew[i]);
-		}
-		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
-			Assert.assertEquals((i >= 900 ) ? 1 : 0, arrayOld[i]);
-		}
-		Assert.assertArrayEquals(arrayOld, arrayNew);
+		Assert.assertArrayEquals(arrayOld, CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask));
 		
 		// reset arrays and set all values to -1
 		// this should mean that no coverage values are stored
 		Arrays.fill(arrayOld, -1);
-		Arrays.fill(arrayNew, -1);
+		Arrays.fill(mask, -1);
+		arrayNew = new int[1024];
 		rec1.setAlignmentStart(1);
 		
 		algorithm.applyTo(rec1, arrayNew);
 		applyToOld(rec1, arrayOld);
 
-        for (int j : arrayNew) {
-            Assert.assertEquals(-1, j);
-        }
         for (int j : arrayOld) {
             Assert.assertEquals(-1, j);
         }
-		Assert.assertArrayEquals(arrayOld, arrayNew);
+		Assert.assertArrayEquals(arrayOld, CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask));
 	}
 	
 	@Ignore
@@ -152,62 +126,14 @@ public class PhysicalCoverageAlgorithmTest {
 		int counter = 1000;
 		long start = System.currentTimeMillis();
 		for (int i = 0 ; i < counter ; i++) {
-			algorithm.applyTo(rec1, arrayNew, true);
+			algorithm.applyTo(rec1, arrayNew);
 		}
-		System.out.println("new method (true): " + (System.currentTimeMillis() - start));
+		System.out.println("new method: " + (System.currentTimeMillis() - start));
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < counter ; i++) {
 			applyToOld(rec1, arrayOld);
 		}
 		System.out.println("old method: " + (System.currentTimeMillis() - start));
-		start = System.currentTimeMillis();
-		for (int i = 0 ; i < counter ; i++) {
-			algorithm.applyTo(rec1, arrayNew, false);
-		}
-		System.out.println("new method (false)" + (System.currentTimeMillis() - start));
-		
-//		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-//			Assert.assertEquals((i <= 140 ) ? 1 : 0, arrayNew[i]);
-//		}
-//		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
-//			Assert.assertEquals((i <= 140 ) ? 1 : 0, arrayOld[i]);
-//		}
-//		Assert.assertArrayEquals(arrayOld, arrayNew);
-//		
-//		// reset arrays
-//		arrayNew = new int[1024];
-//		arrayOld = new int[1024];
-//		rec1.setAlignmentStart(901);
-//		rec1.setMateAlignmentStart(1001);
-//		
-//		
-//		algorithm.applyTo(rec1, arrayNew);
-//		applyToOld(rec1, arrayOld);
-//		
-//		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-//			Assert.assertEquals((i >= 900 ) ? 1 : 0, arrayNew[i]);
-//		}
-//		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
-//			Assert.assertEquals((i >= 900 ) ? 1 : 0, arrayOld[i]);
-//		}
-//		Assert.assertArrayEquals(arrayOld, arrayNew);
-//		
-//		// reset arrays and set all values to -1
-//		// this should mean that no coverage values are stored
-//		Arrays.fill(arrayOld, -1);
-//		Arrays.fill(arrayNew, -1);
-//		rec1.setAlignmentStart(1);
-//		
-//		algorithm.applyTo(rec1, arrayNew);
-//		applyToOld(rec1, arrayOld);
-//		
-//		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-//			Assert.assertEquals( -1, arrayNew[i]);
-//		}
-//		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
-//			Assert.assertEquals(-1, arrayOld[i]);
-//		}
-//		Assert.assertArrayEquals(arrayOld, arrayNew);
 	}
 	
 	@Test
@@ -215,12 +141,13 @@ public class PhysicalCoverageAlgorithmTest {
 		PhysicalCoverageAlgorithm algorithm = new PhysicalCoverageAlgorithm();
 		int [] arrayNew = new int[1024];
 		int [] arrayOld = new int[1024];
+		int [] mask = new int[1024];
 		
 		// setup the bait from 20-50
-		Arrays.fill(arrayNew, -1);
 		Arrays.fill(arrayOld, -1);
-		Arrays.fill(arrayNew, 19, 49, 0);
+		Arrays.fill(mask, -1);
 		Arrays.fill(arrayOld, 19, 49, 0);
+		Arrays.fill(mask, 19, 49, 0);
 		
 		SAMRecord rec = new SAMRecord(null);
 		
@@ -231,13 +158,6 @@ public class PhysicalCoverageAlgorithmTest {
 		algorithm.applyTo(rec, arrayNew);
 		applyToOld(rec, arrayOld);
 		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			if (i < 19 || i >= 49) {
-				Assert.assertEquals( -1, arrayNew[i]);
-			} else {
-				Assert.assertEquals((i < 40 ) ? 1 : 0, arrayNew[i]);
-			}
-		}
 		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
 			if (i < 19 || i >= 49) {
 				Assert.assertEquals( -1, arrayOld[i]);
@@ -245,7 +165,7 @@ public class PhysicalCoverageAlgorithmTest {
 				Assert.assertEquals((i < 40 ) ? 1 : 0, arrayOld[i]);
 			}
 		}
-		Assert.assertArrayEquals(arrayOld, arrayNew);
+		Assert.assertArrayEquals(arrayOld, CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask));
 	}
 	
 	@Ignore
