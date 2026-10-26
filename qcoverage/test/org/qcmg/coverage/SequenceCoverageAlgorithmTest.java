@@ -16,6 +16,7 @@ public class SequenceCoverageAlgorithmTest {
 		SequenceCoverageAlgorithm algorithm = new SequenceCoverageAlgorithm();
 		int [] arrayNew = new int[1024];
 		int [] arrayOld = new int[1024];
+		int [] mask = new int[1024];
 		SAMRecord rec = new SAMRecord(null);
 		
 		rec.setAlignmentStart(1);
@@ -25,13 +26,7 @@ public class SequenceCoverageAlgorithmTest {
 		algorithm.applyTo(rec, arrayNew);
 		applyToOld(rec, arrayOld);
 		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			Assert.assertEquals((i < 40 ) ? 1 : 0, arrayNew[i]);
-		}
-		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
-			Assert.assertEquals((i < 40 ) ? 1 : 0, arrayOld[i]);
-		}
-		Assert.assertArrayEquals(arrayOld, arrayNew);
+		Assert.assertArrayEquals(arrayOld, CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask));
 		
 		// reset arrays
 		arrayNew = new int[1024];
@@ -41,30 +36,22 @@ public class SequenceCoverageAlgorithmTest {
 		algorithm.applyTo(rec, arrayNew);
 		applyToOld(rec, arrayOld);
 		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			Assert.assertEquals((i > 998 ) ? 1 : 0, arrayNew[i]);
-		}
-		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
-			Assert.assertEquals((i > 998 ) ? 1 : 0, arrayOld[i]);
-		}
-		Assert.assertArrayEquals(arrayOld, arrayNew);
+		Assert.assertArrayEquals(arrayOld, CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask));
 		
 		// reset arrays and set all values to -1
 		// this should mean that no coverage values are stored
 		Arrays.fill(arrayOld, -1);
-		Arrays.fill(arrayNew, -1);
+		Arrays.fill(mask, -1);
+		arrayNew = new int[1024];
 		rec.setAlignmentStart(1);
 		
 		algorithm.applyTo(rec, arrayNew);
 		applyToOld(rec, arrayOld);
 
-        for (int j : arrayNew) {
-            Assert.assertEquals(-1, j);
-        }
         for (int j : arrayOld) {
             Assert.assertEquals(-1, j);
         }
-		Assert.assertArrayEquals(arrayOld, arrayNew);
+		Assert.assertArrayEquals(arrayOld, CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask));
 	}
 	
 	
@@ -74,12 +61,13 @@ public class SequenceCoverageAlgorithmTest {
 		SequenceCoverageAlgorithm algorithm = new SequenceCoverageAlgorithm();
 		int [] arrayNew = new int[1024];
 		int [] arrayOld = new int[1024];
+		int [] mask = new int[1024];
 		
 		// setup the bait from 20-50
-		Arrays.fill(arrayNew, -1);
 		Arrays.fill(arrayOld, -1);
-		Arrays.fill(arrayNew, 19, 49, 0);
+		Arrays.fill(mask, -1);
 		Arrays.fill(arrayOld, 19, 49, 0);
+		Arrays.fill(mask, 19, 49, 0);
 		
 		SAMRecord rec = new SAMRecord(null);
 		
@@ -90,13 +78,6 @@ public class SequenceCoverageAlgorithmTest {
 		algorithm.applyTo(rec, arrayNew);
 		applyToOld(rec, arrayOld);
 		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			if (i < 19 || i >= 49) {
-				Assert.assertEquals( -1, arrayNew[i]);
-			} else {
-				Assert.assertEquals((i < 40 ) ? 1 : 0, arrayNew[i]);
-			}
-		}
 		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
 			if (i < 19 || i >= 49) {
 				Assert.assertEquals( -1, arrayOld[i]);
@@ -104,7 +85,7 @@ public class SequenceCoverageAlgorithmTest {
 				Assert.assertEquals((i < 40 ) ? 1 : 0, arrayOld[i]);
 			}
 		}
-		Assert.assertArrayEquals(arrayOld, arrayNew);
+		Assert.assertArrayEquals(arrayOld, CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask));
 	}
 	
 	@Ignore

@@ -8,7 +8,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.commandline.Executor;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.record.RecordWriter;
 
@@ -69,8 +68,8 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " + fname ;
 
 		//default value txt output only
-		Executor exec = execute(cmd);
-		assertEquals(0, exec.getErrCode());
+		int errCode = execute(cmd);
+		assertEquals(0, errCode);
 				
 		File fOutput = new File(fname);		
 		assertTrue(fOutput.exists());
@@ -82,8 +81,8 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " +fname  + " --output-format xml";
 
 		//xml output only
-		Executor exec = execute(cmd);
-		assertEquals(0, exec.getErrCode());
+		int errCode = execute(cmd);
+		assertEquals(0, errCode);
 		
 		File fOutput = new File(fname);
 		assertFalse(fOutput.exists());
@@ -102,8 +101,8 @@ public class CoverageTest {
 									   " --input-bai " + inputBai +  " --output " + bedname + " --output-format bed --readdepth-cutoff 8";
 
 	    //default value txt output only
-	    Executor exec = execute(cmd);
-	    assertEquals(0, exec.getErrCode());
+	    int errCode = execute(cmd);
+	    assertEquals(0, errCode);
 	    File fBedOutput = new File(bedname);
 	    assertTrue(fBedOutput.exists());
    }
@@ -115,8 +114,8 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " + bed + " --output-format bed --readdepth-cutoff 8";
 
 		//default value txt output only
-		Executor exec = execute(cmd);
-		assertEquals(0, exec.getErrCode());
+		int errCode = execute(cmd);
+		assertEquals(0, errCode);
 		File fBedOutput = new File(bed);
 		assertFalse(fBedOutput.exists());
 
@@ -132,8 +131,8 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " + bedname + " --output-format bed";
 
 		//Should fail as readdepth-cutoff option is missing
-		Executor exec = execute(cmd);
-		assertEquals(1, exec.getErrCode());
+		int errCode = execute(cmd);
+		assertEquals(1, errCode);
 	}
 
 	@Test
@@ -144,8 +143,8 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " + bedname + " --output-format bed --readdepth-cutoff 8";
 
 		//Should fail as readdepth-cutoff option only used for coverage type low_readdepth
-		Executor exec = execute(cmd);
-		assertEquals(1, exec.getErrCode());
+		int errCode = execute(cmd);
+		assertEquals(1, errCode);
 	}
 
 	public void coverageStatsXml() throws JAXBException {
@@ -196,8 +195,8 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " +fname  + " --output-format vcf";
 
 		//run fail for vcf without per-feature
-		Executor exec = execute(cmd);
-		assertEquals(1, exec.getErrCode());
+		int errCode = execute(cmd);
+		assertEquals(1, errCode);
 		
 		File fOutput = new File(fname );
 		assertFalse(fOutput.exists());	
@@ -213,8 +212,8 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " +fname  + " --per-feature --output-format vcf";
 	
 		//vcf output only
-		Executor exec = execute(cmd);
-		assertEquals(0, exec.getErrCode());
+		int errCode = execute(cmd);
+		assertEquals(0, errCode);
 		
 		File fOutput = new File(fname );
 		assertFalse(fOutput.exists());	
@@ -232,8 +231,8 @@ public class CoverageTest {
 				" --output-format xml --output-format txt";
 
 		//two types output
-		Executor exec = execute(cmd);
-		assertEquals(0, exec.getErrCode());
+		int errCode = execute(cmd);
+		assertEquals(0, errCode);
 		
 		File fOutput = new File(fname );
 		assertTrue(fOutput.exists());	
@@ -246,8 +245,8 @@ public class CoverageTest {
 		cmd = "--log " + log + " --type phys --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
 				" --input-bai " + inputBai +  " --output " +fname  + 
 				" --output-format vcf --output-format xml --output-format txt";
-		exec = execute(cmd);
-		assertEquals(1, exec.getErrCode());
+		errCode = execute(cmd);
+		assertEquals(1, errCode);
 		
 	}	
 
@@ -260,8 +259,8 @@ public class CoverageTest {
 				" --per-feature --output-format vcf --output-format xml --output-format txt";
 
 		//three types output
-		Executor exec = execute(cmd);
-		assertEquals(0, exec.getErrCode());
+		int errCode = execute(cmd);
+		assertEquals(0, errCode);
 		
 		//append txt to output.txt.xml  
 		File fOutput = new File(foutput + ".txt");
@@ -276,7 +275,7 @@ public class CoverageTest {
 		assertTrue(fOutput.exists());
 	}	
 
-	private Executor execute(final String command) throws Exception {
-		return new Executor(command, "org.qcmg.coverage.Coverage");
+	private int execute(final String command) throws Exception {
+		return Coverage.run(command.split(" "));
 	}
 }

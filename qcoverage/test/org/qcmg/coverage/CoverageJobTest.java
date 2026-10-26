@@ -37,20 +37,17 @@ public class CoverageJobTest {
 		 
 		
 		cj.constructCoverageMap();
-		int [] arrayNew = cj.getPerBaseCoverages();
+		int [] arrayNew = cj.getPerBaseCoverages(null);
 		int [] arrayOld = new int[arraySize];
 		constructCoverageMapOld(arrayOld, features);
 		
 		Assert.assertEquals(arraySize, arrayNew.length);
+		// the coverage is calculated using a difference array, which starts out empty
 		for (int i = 0 ; i < arraySize ; i++) {
-			if (i < gff.getStart()-1)
-				Assert.assertEquals(-1, arrayNew[i]);
-			else if (i < gff.getEnd())
-				Assert.assertEquals(0, arrayNew[i]);
-			else
-				Assert.assertEquals(-1, arrayNew[i]);
+			Assert.assertEquals(0, arrayNew[i]);
 		}
-		Assert.assertArrayEquals(arrayNew, arrayOld);
+		// the positions covered by the features must be the same as those of the old implementation
+		assertRangesEqual(CoverageArrayUtils.toRanges(arrayOld), cj.getFeatureRanges());
 		
 	}
 	@Test
@@ -74,24 +71,17 @@ public class CoverageJobTest {
 //		CoverageJob cj = new CoverageJob("test", arraySize, refToFeaturesMap, pairs, null, null, false, null);
 		CoverageJob cj = new CoverageJob("test", arraySize, refToFeaturesMap, pairs,  null, false, null, null, null);
 		cj.constructCoverageMap();
-		int [] arrayNew = cj.getPerBaseCoverages();
+		int [] arrayNew = cj.getPerBaseCoverages(null);
 		int [] arrayOld = new int[arraySize];
 		constructCoverageMapOld(arrayOld, features);
 		
 		Assert.assertEquals(arraySize, arrayNew.length);
-		for (Gff3Record gff : features) {
-			int start = gff.getStart() -1;
-			int end = gff.getEnd();
-			for (int i = start ; i < end && i < arraySize; i++) {
-				Assert.assertEquals(0, arrayNew[i]);
-				Assert.assertEquals(0, arrayOld[i]);
-			}
-			for (int i = start -(gffRange-1) ;i > 0 && i < start && i < arraySize; i++) {
-				Assert.assertEquals(-1, arrayNew[i]);
-				Assert.assertEquals(-1, arrayOld[i]);
-			}
+		// the coverage is calculated using a difference array, which starts out empty
+		for (int i = 0 ; i < arraySize ; i++) {
+			Assert.assertEquals(0, arrayNew[i]);
 		}
-		Assert.assertArrayEquals(arrayNew, arrayOld);
+		// the positions covered by the features must be the same as those of the old implementation
+		assertRangesEqual(CoverageArrayUtils.toRanges(arrayOld), cj.getFeatureRanges());
 		
 	}
 	
@@ -118,41 +108,15 @@ public class CoverageJobTest {
 		long startTime = System.nanoTime();
 		cj.constructCoverageMap();
 		System.out.println("New: " + (System.nanoTime() - startTime));
-		int [] arrayNew = cj.getPerBaseCoverages();
+		int [] arrayNew = cj.getPerBaseCoverages(null);
 		int [] arrayOld = new int[arraySize];
 		startTime = System.nanoTime();
 		constructCoverageMapOld(arrayOld, features);
 		System.out.println("Old: " + (System.nanoTime() - startTime));
 		
 		Assert.assertEquals(arraySize, arrayNew.length);
-		for (Gff3Record gff : features) {
-			int start = gff.getStart() -1;
-			int end = gff.getEnd();
-			for (int i = start ; i < end && i < arraySize; i++) {
-				Assert.assertEquals(0, arrayNew[i]);
-				Assert.assertEquals(0, arrayOld[i]);
-			}
-			for (int i = start -(gffRange-1) ;i > 0 && i < start && i < arraySize; i++) {
-				Assert.assertEquals(-1, arrayNew[i]);
-				Assert.assertEquals(-1, arrayOld[i]);
-			}
-		}
-		Assert.assertArrayEquals(arrayNew, arrayOld);
+		assertRangesEqual(CoverageArrayUtils.toRanges(arrayOld), cj.getFeatureRanges());
 		
-		
-		// reset arrays
-		startTime = System.nanoTime();
-		cj.constructCoverageMap();
-		System.out.println("New: " + (System.nanoTime() - startTime));
-		
-		arrayNew = cj.getPerBaseCoverages();
-		arrayOld = new int[arraySize];
-		
-		startTime = System.nanoTime();
-		constructCoverageMapOld(arrayOld, features);
-		System.out.println("Old: " + (System.nanoTime() - startTime));
-		
-		Assert.assertArrayEquals(arrayNew, arrayOld);
 	}
 	
 	
@@ -169,6 +133,13 @@ public class CoverageJobTest {
 					perBaseCoverages[coord - 1] = 0;
 				}
 			}
+		}
+	}
+
+	private static void assertRangesEqual(final int[][] expected, final int[][] actual) {
+		Assert.assertEquals(expected.length, actual.length);
+		for (int i = 0 ; i < expected.length ; i++) {
+			Assert.assertArrayEquals(expected[i], actual[i]);
 		}
 	}
 

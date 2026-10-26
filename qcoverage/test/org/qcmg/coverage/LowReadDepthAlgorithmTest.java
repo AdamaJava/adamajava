@@ -11,6 +11,7 @@ public class LowReadDepthAlgorithmTest {
 	public void testApplyToSingle() {
 		LowReadDepthAlgorithm algorithm = new LowReadDepthAlgorithm(12);
 		int [] arrayNew = new int[1024];
+		int [] mask = new int[1024];
 
 		SAMRecord rec = new SAMRecord(null);
 		
@@ -20,8 +21,9 @@ public class LowReadDepthAlgorithmTest {
 		
 		algorithm.applyTo(rec, arrayNew);
 		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			Assert.assertEquals((i < 40 ) ? 1 : 0, arrayNew[i]);
+		int [] perBaseCoverage = CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask);
+		for (int i = 0 , length = perBaseCoverage.length  ; i < length ; i++) {
+			Assert.assertEquals((i < 40 ) ? 1 : 0, perBaseCoverage[i]);
 		}
 		
 		// reset arrays
@@ -30,11 +32,12 @@ public class LowReadDepthAlgorithmTest {
 		
 		algorithm.applyTo(rec, arrayNew);
 		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			Assert.assertEquals((i > 998 ) ? 1 : 0, arrayNew[i]);
+		perBaseCoverage = CoverageArrayUtils.toMaskedPerBaseCoverage(arrayNew, mask);
+		for (int i = 0 , length = perBaseCoverage.length  ; i < length ; i++) {
+			Assert.assertEquals((i > 998 ) ? 1 : 0, perBaseCoverage[i]);
 		}
 
 	}
-	
+
 
 }
