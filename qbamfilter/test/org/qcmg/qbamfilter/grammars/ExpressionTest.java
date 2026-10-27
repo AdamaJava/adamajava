@@ -106,4 +106,53 @@ public class ExpressionTest {
     }
     
     
+    @Test
+    public void conditionsOrderedByCost() throws Exception {
+        Expression exp = new Expression();
+        exp.addOperator(queryTree.Operator.AND);
+        SamRecordFilter cigar = new Condition("Cigar_M", ">", "34").getFilter();
+        SamRecordFilter md = new Condition("MD_mismatch", "<", "3").getFilter();
+        SamRecordFilter mapq = new Condition("MAPQ", ">", "0").getFilter();
+        SamRecordFilter dup = new Condition("flag_DuplicateRead", "==", "false").getFilter();
+        SamRecordFilter tag = new Condition("option_SM", ">", "10").getFilter();
+        exp.addCondition(cigar);
+        exp.addCondition(md);
+        exp.addCondition(mapq);
+        exp.addCondition(dup);
+        exp.addCondition(tag);
+        // cheapest first, ties stay in query order
+        assertEquals(java.util.List.of(mapq, dup, cigar, md, tag), exp.conditions);
+
+        // nested expression takes the cost of its most expensive condition
+        Expression nested = new Expression();
+        nested.addOperator(queryTree.Operator.OR);
+        nested.addCondition(new Condition("option_ZM", "==", "1").getFilter());
+        nested.addCondition(new Condition("flag_ReadPaired", "==", "true").getFilter());
+        Expression outer = new Expression();
+        outer.addOperator(queryTree.Operator.AND);
+        outer.addCondition(nested);
+        outer.addCondition(cigar);
+        outer.addCondition(dup);
+        assertEquals(java.util.List.of(dup, cigar, nested), outer.conditions);
+    }
+
+    @Test
+    public void reorderingDoesNotChangeResult() throws Exception {
+        SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        for (SAMRecord record : inreader) {
+            for (queryTree.Operator op : new queryTree.Operator[] {queryTree.Operator.AND, queryTree.Operator.OR}) {
+                Expression exp = new Expression();
+                exp.addOperator(op);
+                SamRecordFilter tag = new Condition("option_ZM", "==", "1").getFilter();
+                SamRecordFilter mapq = new Condition("MAPQ", ">", "1000").getFilter();
+                exp.addCondition(tag);
+                exp.addCondition(mapq);
+                boolean expected = op == queryTree.Operator.AND
+                        ? tag.filterOut(record) && mapq.filterOut(record)
+                        : tag.filterOut(record) || mapq.filterOut(record);
+                assertEquals(expected, exp.filterOut(record));
+            }
+        }
+        inreader.close();
+    }
 }

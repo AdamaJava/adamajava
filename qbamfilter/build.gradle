@@ -13,3 +13,10 @@ dependencies {
     implementation 'org.antlr:antlr:3.2'
 }
 
+
+// micro-benchmark of QueryExecutor: ./gradlew :qbamfilter:benchmark [-Pbam=/path/to.bam] [-Ppasses=N]
+task benchmark(type: JavaExec) {
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'org.qcmg.qbamfilter.query.QueryExecutorBenchmark'
+    args = [project.findProperty('bam') ?: '../qsv/src/resources/example.test.bam', project.findProperty('passes') ?: '200']
+}
