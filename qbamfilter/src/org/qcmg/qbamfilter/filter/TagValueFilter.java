@@ -16,6 +16,8 @@ public final class TagValueFilter implements SamRecordFilter{
     private final short tagShort;
     private final String value;
     private final Comparator op;
+    private final boolean intCompare; //true if value is an integer, and op can compare it numerically
+    private final int intValue;
 
 
     /**
@@ -29,6 +31,20 @@ public final class TagValueFilter implements SamRecordFilter{
         tagShort = SAMTag.makeBinaryTag(tag);
         this.value = value;
         op = comp;
+
+        // only use the integer path when it gives the same answer as eval(String, String),
+        // ie. value is in canonical form ("05" or "+5" would not equal "5" as strings)
+        Integer parsed = null;
+        try {
+            parsed = Integer.parseInt(value);
+            if ( ! Integer.toString(parsed).equals(value)) {
+                parsed = null;
+            }
+        } catch (NumberFormatException e) {
+            // not an integer - use string comparison
+        }
+        intCompare = parsed != null && op.isNumeric();
+        intValue = parsed != null ? parsed : 0;
     }
 
     /**
@@ -43,6 +59,10 @@ public final class TagValueFilter implements SamRecordFilter{
     public boolean filterOut(final SAMRecord record){
         Object ob = record.getAttribute(tagShort);
         if (ob != null) {
+            // integer tags (eg. NH:i:1) - avoid converting to String and parsing back again
+            if (intCompare && (ob instanceof Integer || ob instanceof Short || ob instanceof Byte)) {
+                return op.eval(((Number) ob).intValue(), intValue);
+            }
             return op.eval(ob.toString(), value);
         }
         return false;
