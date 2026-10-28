@@ -359,6 +359,42 @@ public class FastqSummaryReport extends SummaryReport {
 		getPairInfo(params[4]);
 	}
 
+	/**
+	 * Adds the tallies held in the supplied report to this report.
+	 * <p>Used by the multi-threaded summarizer, where each consumer thread populates its own report,
+	 * and these are combined once all the threads have finished.
+	 *
+	 * @param other FastqSummaryReport whose tallies will be added to this report
+	 */
+	public void merge(FastqSummaryReport other) {
+		updateRecordsParsed(other.getRecordsParsed());
+
+		seqByCycle.merge(other.seqByCycle);
+		seqBadReadLineLengths.merge(other.seqBadReadLineLengths);
+		kmersSummary.merge(other.kmersSummary);
+		qualByCycleInteger.merge(other.qualByCycleInteger);
+		qualBadReadLineLengths.merge(other.qualBadReadLineLengths);
+
+		mergeMap(instruments, other.instruments);
+		mergeMap(runIds, other.runIds);
+		mergeMap(flowCellIds, other.flowCellIds);
+		mergeMap(flowCellLanes, other.flowCellLanes);
+		mergeMap(tileNumbers, other.tileNumbers);
+		mergeMap(indexes, other.indexes);
+
+		firstInPair.addAndGet(other.firstInPair.get());
+		secondInPair.addAndGet(other.secondInPair.get());
+		filteredY.addAndGet(other.filteredY.get());
+		filteredN.addAndGet(other.filteredN.get());
+		qualHeaderNotEqualToPlus.addAndGet(other.qualHeaderNotEqualToPlus.get());
+	}
+
+	private static <T> void mergeMap(ConcurrentMap<T, AtomicLong> map, ConcurrentMap<T, AtomicLong> otherMap) {
+		for (Map.Entry<T, AtomicLong> entry : otherMap.entrySet()) {
+			map.computeIfAbsent(entry.getKey(), k -> new AtomicLong()).addAndGet(entry.getValue().get());
+		}
+	}
+
 	private <T> void updateMap(ConcurrentMap<T, AtomicLong> map , T key) {
 		AtomicLong al = map.get(key);
 		if (null == al) {

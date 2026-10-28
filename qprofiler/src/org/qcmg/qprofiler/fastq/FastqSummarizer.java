@@ -54,7 +54,8 @@ public class FastqSummarizer implements Summarizer {
 //		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		
 		long recordsParsed = 0;
-		try (FastqReader reader =  new FastqReader(new File(input));) {
+		File file = new File(input);
+		try (FastqReader reader =  new FastqReader(file, FastqSummarizerMT.openForReading(file, false));) {
 			for (FastqRecord record : reader) {
 				if (null != record) {
 					
