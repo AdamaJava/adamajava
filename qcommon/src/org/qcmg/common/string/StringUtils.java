@@ -491,8 +491,8 @@ public class StringUtils {
 
     public static int getCount(String s, char c) {
         int matchCount = 0;
-        for (char c1 : s.toCharArray()) {
-            if (c1 == c) {
+        for (int i = 0, len = s.length(); i < len; i++) {
+            if (s.charAt(i) == c) {
                 matchCount++;
             }
         }
