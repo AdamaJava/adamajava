@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 public class LowReadDepthTest {
@@ -114,11 +115,11 @@ public class LowReadDepthTest {
     }
 
     @Test
-    public void multipleLowReadDepthsOneCutoffEach() throws Exception {
+    public void repeatedCutoffOption() throws Exception {
         String fname = testFolder.getRoot().getAbsolutePath() + "/multi.bed";
         File fOutput8 = new File(testFolder.getRoot().getAbsolutePath() + "/multi.low_readdepth8.bed");
         File fOutput12 = new File(testFolder.getRoot().getAbsolutePath() + "/multi.low_readdepth12.bed");
-        String cmd = "--log ./logfile --type low_readdepth --type low_readdepth --input-gff3 " + gff1000To1065
+        String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065
                 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname
                 + " --readdepth-cutoff 8 --readdepth-cutoff 12";
 
@@ -149,41 +150,31 @@ public class LowReadDepthTest {
     }
 
     @Test
-    public void multipleLowReadDepthsSharedCutoff() throws Exception {
-        String fname = testFolder.getRoot().getAbsolutePath() + "/shared.bed";
-        File fOutput0 = new File(testFolder.getRoot().getAbsolutePath() + "/shared.low_readdepth0.bed");
-        File fOutput1 = new File(testFolder.getRoot().getAbsolutePath() + "/shared.low_readdepth1.bed");
+    public void lowReadDepthTypeSpecifiedMoreThanOnce() throws Exception {
+        String fname = testFolder.getRoot().getAbsolutePath() + "/twice.bed";
         String cmd = "--log ./logfile --type low_readdepth --type low_readdepth --input-gff3 " + gff1000To1065
                 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname
-                + " --readdepth-cutoff 8";
+                + " --readdepth-cutoff 8 --readdepth-cutoff 12";
 
-        int errCode = execute(cmd);
-
-        assertEquals(0, errCode);
-        assertTrue(fOutput0.exists());
-        assertTrue(fOutput1.exists());
-
-        List<String> contents0;
-        try (BufferedReader r = new BufferedReader(new FileReader(fOutput0))) {
-            contents0 = r.lines().toList();
-        }
-        List<String> contents1;
-        try (BufferedReader r = new BufferedReader(new FileReader(fOutput1))) {
-            contents1 = r.lines().toList();
-        }
-        assertEquals(contents0, contents1);
-        assertEquals(2, contents0.size());
-
-        fOutput0.delete();
-        fOutput1.delete();
+        assertNotEquals(0, execute(cmd));
     }
 
     @Test
-    public void multipleLowReadDepthsSeparateOutputs() throws Exception {
+    public void duplicateCutoffs() throws Exception {
+        String fname = testFolder.getRoot().getAbsolutePath() + "/duplicate.bed";
+        String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065
+                + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname
+                + " --readdepth-cutoff 8,8";
+
+        assertNotEquals(0, execute(cmd));
+    }
+
+    @Test
+    public void repeatedCutoffOptionSeparateOutputs() throws Exception {
         String root = testFolder.getRoot().getAbsolutePath();
         File fOutput8 = new File(root + "/eight.bed");
         File fOutput12 = new File(root + "/twelve.bed");
-        String cmd = "--log ./logfile --type low_readdepth --type low_readdepth --input-gff3 " + gff1000To1065
+        String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065
                 + " --input-bam " + bam + " --input-bai " + bai
                 + " --output " + fOutput8.getAbsolutePath() + " --output " + fOutput12.getAbsolutePath()
                 + " --readdepth-cutoff 8 --readdepth-cutoff 12";

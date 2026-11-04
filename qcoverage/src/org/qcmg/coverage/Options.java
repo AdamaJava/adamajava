@@ -25,6 +25,17 @@ public final class Options {
 	private static final String PER_FEATURE_OPTION_DESCRIPTION = Messages.getMessage("PER_FEATURE_OPTION_DESCRIPTION");
 	private static final String OUTPUT_DESCRIPTION = Messages.getMessage("OUTPUT_OPTION_DESCRIPTION");
 	private static final String QUERY_OPTION_DESCRIPTION = Messages.getMessage("QUERY_OPTION_DESCRIPTION");
+	private static final String SEQUENCE_QUERY_OPTION_DESCRIPTION = Messages.getMessage("SEQUENCE_QUERY_OPTION_DESCRIPTION");
+	private static final String PHYSICAL_QUERY_OPTION_DESCRIPTION = Messages.getMessage("PHYSICAL_QUERY_OPTION_DESCRIPTION");
+	private static final String LOW_READ_DEPTH_QUERY_OPTION_DESCRIPTION = Messages.getMessage("LOW_READ_DEPTH_QUERY_OPTION_DESCRIPTION");
+
+	/*
+	 * The options that supply a query for a single coverage type, which take precedence over the
+	 * query option, keyed by the coverage type that they apply to.
+	 */
+	private static final String SEQUENCE_QUERY = "sequence-query";
+	private static final String PHYSICAL_QUERY = "physical-query";
+	private static final String LOW_READ_DEPTH_QUERY = "low-readdepth-query";
 	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
@@ -41,7 +52,10 @@ public final class Options {
 	private Integer[] numberThreads;
 	private final String logLevel;
 	private final String log;
-	private String query;
+	private String[] queries;
+	private String[] sequenceQueries;
+	private String[] physicalQueries;
+	private String[] lowReadDepthQueries;
 	private String validation;
 	private Integer[] lowReadDepthCutoffs;
 
@@ -73,6 +87,9 @@ public final class Options {
 		parser.accepts("input-gff3", INPUT_GFF3_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);				 
 		parser.accepts("type", TYPE_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("query", QUERY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts(SEQUENCE_QUERY, SEQUENCE_QUERY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts(PHYSICAL_QUERY, PHYSICAL_QUERY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts(LOW_READ_DEPTH_QUERY, LOW_READ_DEPTH_QUERY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("thread", NUMBER_THREADS_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("per-feature", PER_FEATURE_OPTION_DESCRIPTION);
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -118,7 +135,10 @@ public final class Options {
 			types = extractStringList("type");
 			numberThreads = extractIntegerList();
 			
-			query = (String) options.valueOf("query");
+			queries = extractStringList("query");
+			sequenceQueries = extractStringList(SEQUENCE_QUERY);
+			physicalQueries = extractStringList(PHYSICAL_QUERY);
+			lowReadDepthQueries = extractStringList(LOW_READ_DEPTH_QUERY);
 			validation = (String) options.valueOf("validation");
 
 			List<?> lowReadDepthList = options.valuesOf("readdepth-cutoff");
@@ -206,8 +226,41 @@ public final class Options {
 		return log;
 	}
 
+	/**
+	 * @return the query supplied with the query option, or null if no query was supplied
+	 */
 	String getQuery() {
-		return query;
+		return (null == queries || 0 == queries.length) ? null : queries[0];
+	}
+
+	/**
+	 * Returns the query to be used for the supplied coverage type. A query supplied for the
+	 * coverage type itself (eg. with the sequence-query option) takes precedence over the query
+	 * supplied with the query option, which applies to all of the coverage types.
+	 *
+	 * @param typeName the coverage type, as supplied with the type option
+	 * @return the query for the coverage type, or null if there is none. An empty query means
+	 *         that no reads are filtered out for the coverage type.
+	 */
+	String getQuery(final String typeName) {
+		final String[] typeQueries = getTypeQueries(typeName);
+		if (null != typeQueries && typeQueries.length > 0) {
+			return typeQueries[0];
+		}
+		return getQuery();
+	}
+
+	/**
+	 * @return the queries supplied for the coverage type with its own query option, or null if
+	 *         the coverage type does not have its own query option
+	 */
+	private String[] getTypeQueries(final String typeName) {
+		return switch (typeName) {
+			case "sequence", "seq" -> sequenceQueries;
+			case "physical", "phys" -> physicalQueries;
+			case "low_readdepth" -> lowReadDepthQueries;
+			default -> null;
+		};
 	}
 
 	String getLogLevel() {
@@ -333,15 +386,27 @@ public final class Options {
 		if (0 == lowReadDepthRequested && hasLowReadDepthOption()) {
 			throw new Exception("Low read depth cutoff option should only be used for low_readdepth coverage type");
 		}
+		if (1 < lowReadDepthRequested) {
+			throw new Exception("The low_readdepth coverage type can only be specified once. Supply several "
+					+ "cutoffs with the readdepth-cutoff option to produce one report per cutoff");
+		}
 		if (0 < lowReadDepthRequested) {
-			if (!hasLowReadDepthOption()) {
+			if (null == lowReadDepthCutoffs || 0 == lowReadDepthCutoffs.length) {
 				throw new Exception("Missing low read depth cutoff option when running low_readdepth coverage type");
 			}
-			if (null != lowReadDepthCutoffs && lowReadDepthCutoffs.length > 1
-					&& lowReadDepthRequested != 1 && lowReadDepthRequested != lowReadDepthCutoffs.length) {
-				throw new Exception("Either a single cutoff for all low_readdepth types, or one cutoff per low_readdepth type, should be provided");
+			if (Arrays.stream(lowReadDepthCutoffs).distinct().count() != lowReadDepthCutoffs.length) {
+				throw new Exception("Each low read depth cutoff should only be specified once");
 			}
 		}
+
+		if (null != queries && queries.length > 1) {
+			throw new Exception("The query option can only be specified once. Use the "
+					+ SEQUENCE_QUERY + ", " + PHYSICAL_QUERY + " and " + LOW_READ_DEPTH_QUERY
+					+ " options to supply a different query for a coverage type");
+		}
+		checkTypeQuery(SEQUENCE_QUERY, sequenceQueries, "sequence", "seq");
+		checkTypeQuery(PHYSICAL_QUERY, physicalQueries, "physical", "phys");
+		checkTypeQuery(LOW_READ_DEPTH_QUERY, lowReadDepthQueries, "low_readdepth");
 
 		if (!hasInputBAMOption()) {
 			throw new Exception("Missing BAM input file option");
@@ -352,10 +417,9 @@ public final class Options {
 		if (!hasOutputOption()) {
 			throw new Exception("Missing output option");
 		}
-		// a single low_readdepth type with several cutoffs results in one coverage per cutoff
+		// the low_readdepth type results in one coverage per cutoff
 		final int numberOfCoverageTypes = getTypes().length
-				+ ((lowReadDepthRequested == 1 && null != lowReadDepthCutoffs && lowReadDepthCutoffs.length > 1)
-						? lowReadDepthCutoffs.length - 1 : 0);
+				+ (0 < lowReadDepthRequested ? lowReadDepthCutoffs.length - 1 : 0);
 		// either a single output file is provided, in which case the file names of the
 		// individual coverage types are derived from it, or one output file is provided
 		// for each of the coverage types
@@ -378,6 +442,24 @@ public final class Options {
 		}
 		 
 		
+	}
+
+	/**
+	 * Checks that the query option for a coverage type is specified at most once, and only when
+	 * that coverage type has been requested.
+	 */
+	private void checkTypeQuery(final String option, final String[] typeQueries, final String... typeNames) throws Exception {
+		if (null == typeQueries || 0 == typeQueries.length) {
+			return;
+		}
+		if (typeQueries.length > 1) {
+			throw new Exception("The " + option + " option can only be specified once");
+		}
+		final List<String> names = Arrays.asList(typeNames);
+		if (Arrays.stream(getTypes()).noneMatch(names::contains)) {
+			throw new Exception("The " + option + " option has been specified, but the " + typeNames[0]
+					+ " coverage type has not been requested");
+		}
 	}
 
 	private boolean hasLowReadDepthOption() {

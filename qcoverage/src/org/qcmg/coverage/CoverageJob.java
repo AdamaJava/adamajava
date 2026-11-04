@@ -46,7 +46,20 @@ class CoverageJob implements Job {
 	 */
 	private final Map<Object, HashMap<String, List<LowReadDepthRegion>>> lowReadDepthMap = new LinkedHashMap<>();
 	private final QLogger logger;
-	private final QueryExecutor filter;
+	/**
+	 * The distinct filters used by the coverage types. Each filter is executed once per read,
+	 * even when it is shared by several coverage types.
+	 */
+	private final QueryExecutor[] filters;
+	/**
+	 * The index into the filters of the filter used by each of the coverage types, or -1 if the
+	 * coverage type has no filter. The entries are in the same order as the algorithms.
+	 */
+	private final int[] filterIndexes;
+	/**
+	 * The result of each of the filters for the read currently being processed.
+	 */
+	private final boolean[] filterResults;
 
 	/**
 	 * The algorithms to be used, in the order that the coverage types were requested.
@@ -96,18 +109,23 @@ class CoverageJob implements Job {
 	CoverageJob(final String refName, final int refLength, final HashMap<String, HashSet<Gff3Record>> refToFeaturesMap,
 			final HashSet<Pair<File, File>> filePairs, final HashMap<File, BamFileInfo> bamFileInfoMap, final QueryExecutor filter,
 			final boolean perFeatureFlag, final Algorithm algorithm, final ReadsNumberCounter counterIn,final ReadsNumberCounter counterOut, final String validation) throws Exception {
-		this(refName, refLength, refToFeaturesMap, filePairs, bamFileInfoMap, filter, perFeatureFlag,
+		this(refName, refLength, refToFeaturesMap, filePairs, bamFileInfoMap,
+				null == filter ? null : Collections.singletonMap(null == algorithm ? CoverageType.SEQUENCE : algorithm.getCoverageType(), filter),
+				perFeatureFlag,
 				null == algorithm ? new LinkedHashMap<>() : Collections.singletonMap(algorithm.getCoverageType(), algorithm),
 				counterIn, counterOut, validation);
 	}
+	/**
+	 * @param filters the filter used to select the reads for each of the coverage types, keyed
+	 *            in the same way as the algorithms. A coverage type without a filter uses all reads.
+	 */
 	CoverageJob(final String refName, final int refLength, final HashMap<String, HashSet<Gff3Record>> refToFeaturesMap,
-			final HashSet<Pair<File, File>> filePairs, final HashMap<File, BamFileInfo> bamFileInfoMap, final QueryExecutor filter,
+			final HashSet<Pair<File, File>> filePairs, final HashMap<File, BamFileInfo> bamFileInfoMap, final Map<?, QueryExecutor> filters,
 			final boolean perFeatureFlag, final Map<?, Algorithm> algorithms, final ReadsNumberCounter counterIn,final ReadsNumberCounter counterOut, final String validation) throws Exception {
 		assert (refLength > -1);
 		this.refLength = refLength;
 		this.counterIn = counterIn;
 		this.counterOut = counterOut;
-		this.filter = filter;
 		this.bamFileInfoMap = null == bamFileInfoMap ? new HashMap<>() : bamFileInfoMap;
 		this.validation = validation;
 		this.logger = QLoggerFactory.getLogger(CoverageJob.class);
@@ -137,6 +155,30 @@ class CoverageJob implements Job {
 			// the low read depth coverage is always reported per feature
 			this.perFeatureFlags[i] = this.coverageTypes[i].equals(CoverageType.LOW_READDEPTH) || perFeatureFlag;
 		}
+		final List<QueryExecutor> distinctFilters = new ArrayList<>();
+		this.filterIndexes = new int[this.coverageTypeKeys.length];
+		for (int i = 0; i < this.coverageTypeKeys.length; i++) {
+			final QueryExecutor filter = (null == filters) ? null : filters.get(this.coverageTypeKeys[i]);
+			if (null == filter) {
+				this.filterIndexes[i] = -1;
+				continue;
+			}
+			// the filters are compared by identity, as coverage types sharing a query share a filter
+			int index = -1;
+			for (int f = 0; f < distinctFilters.size(); f++) {
+				if (distinctFilters.get(f) == filter) {
+					index = f;
+					break;
+				}
+			}
+			if (index < 0) {
+				index = distinctFilters.size();
+				distinctFilters.add(filter);
+			}
+			this.filterIndexes[i] = index;
+		}
+		this.filters = distinctFilters.toArray(new QueryExecutor[0]);
+		this.filterResults = new boolean[this.filters.length];
 
 		// value
 		features = refToFeaturesMap.get(refName);
@@ -318,11 +360,11 @@ class CoverageJob implements Job {
 	/**
 	 * Indicates whether or not the reads can be read using the fast BAM reader.
 	 * <p>
-	 * The fast reader cannot be used when a filter has been supplied, as the filter
-	 * requires a SAMRecord, nor when htsjdk is required to validate the reads.
+	 * The fast reader cannot be used when a filter has been supplied for any of the coverage
+	 * types, as the filter requires a SAMRecord, nor when htsjdk is required to validate the reads.
 	 */
 	private boolean canUseFastReader() {
-		if (null != filter) {
+		if (filters.length > 0) {
 			return false;
 		}
 		if (!isSilentValidation()) {
@@ -376,7 +418,7 @@ class CoverageJob implements Job {
 				}
 			}
 			logger.info("read " + recordCounterIn + " records from input for " + refName);
-			logger.info("add " + recordCounterOut + " records (satisfied by query if query is provided) to coverage for " + refName);
+			logger.info("add " + recordCounterOut + " records (satisfied by the query of at least one coverage type if a query is provided) to coverage for " + refName);
 
 			logger.info("number of bases for " + refName + " is : " + totalBaseCount);
 			logger.info("number of filtered bases for " + refName + " is : 0");
@@ -424,16 +466,13 @@ class CoverageJob implements Job {
 					}
 
 					if (refIndex == read.getReferenceIndex()) {
-						if (null == filter) {
+						// a read is counted when it contributes to the coverage of at least one type
+						if (applyToAlgorithms(read)) {
 							recordCounterOut ++;
 							jobCounterOut++;
-							applyToAlgorithms(read);
-						} else if (filter.Execute(read)) {
-							recordCounterOut ++;
-							jobCounterOut++;
-							applyToAlgorithms(read);
-
-							filteredBaseCount += readLength;
+							if (filters.length > 0) {
+								filteredBaseCount += readLength;
+							}
 						}
 					} else {
 						logger.info("ref names did not match!");
@@ -444,7 +483,7 @@ class CoverageJob implements Job {
 				fileReader.close();
 			}
 			logger.info("read " + recordCounterIn + " records from input for " + refName);
-			logger.info("add " + recordCounterOut + " records (satisfied by query if query is provided) to coverage for " + refName);
+			logger.info("add " + recordCounterOut + " records (satisfied by the query of at least one coverage type if a query is provided) to coverage for " + refName);
 
 			logger.info("number of bases for " + refName + " is : " + totalBaseCount);
 			logger.info("number of filtered bases for " + refName + " is : " + filteredBaseCount);
@@ -472,12 +511,24 @@ class CoverageJob implements Job {
 	}
 
 	/**
-	 * Applies each of the algorithms to the coverage of the given read.
+	 * Applies each of the algorithms to the coverage of the given read, provided that the read
+	 * satisfies the filter (if any) of the corresponding coverage type.
+	 *
+	 * @return whether the read was applied to the coverage of at least one of the coverage types
 	 */
-	private void applyToAlgorithms(final SAMRecord read) {
-		for (int i = 0; i < algorithms.length; i++) {
-			algorithms[i].applyTo(read, coverageArrays[i]);
+	private boolean applyToAlgorithms(final SAMRecord read) throws Exception {
+		for (int f = 0; f < filters.length; f++) {
+			filterResults[f] = filters[f].Execute(read);
 		}
+		boolean applied = false;
+		for (int i = 0; i < algorithms.length; i++) {
+			final int filterIndex = filterIndexes[i];
+			if (filterIndex < 0 || filterResults[filterIndex]) {
+				algorithms[i].applyTo(read, coverageArrays[i]);
+				applied = true;
+			}
+		}
+		return applied;
 	}
 
 	/**
