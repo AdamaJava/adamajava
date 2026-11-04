@@ -18,6 +18,16 @@ public class KmersSummary {
 	public static final int MAX_KMERS = 6; 
 	public static final char[] ATGC_CHAR_ARRAY = new char[]{'A','T','G','C'};
 	public static final char[] ATGCN_CHAR_ARRAY = new char[]{'A','T','G','C','N'};
+
+	// 3 bit code for each base, used to build the kmer entry. Anything other than A,C,G,T is treated as N (5)
+	private static final int[] BASE_CODES = new int[256];
+	static {
+		Arrays.fill(BASE_CODES, 5);
+		BASE_CODES['A'] = 1;
+		BASE_CODES['C'] = 2;
+		BASE_CODES['G'] = 3;
+		BASE_CODES['T'] = 4;
+	}
 	
 	private final int merLength; 
 	private final int[] mersIndex; 
@@ -83,29 +93,48 @@ public class KmersSummary {
 	
 	public void parseKmers( byte[] readString, boolean reverse ){
 		//set to false, it indicate we have to recalculate short kmer for last cycle since new read coming
-		
+
 		 //get the biggest cycle
-		 int c = readString.length - merLength + 1;	
-		 if(c > cycleNo) cycleNo = c; 
-		 byte[] dataString =  readString.clone();  //can't point to same array
-		  
-		 if (reverse){  
-			 byte[] dataReverse = readString.clone(); 
-			 for (int i = dataReverse.length -1 , j = 0; i >= 0 ; i--, j++)  
-				dataString[j] = ( byte ) BaseUtils.getComplement( (char) dataReverse[i] );
+		 int c = readString.length - merLength + 1;
+		 if(c > cycleNo) cycleNo = c;
+		 if (c <= 0) return;
+
+		 byte[] dataString = readString;
+		 if (reverse){
+			 dataString = new byte[readString.length];
+			 for (int i = readString.length -1 , j = 0; i >= 0 ; i--, j++)
+				dataString[j] = ( byte ) BaseUtils.getComplement( (char) readString[i] );
 		 }
-		 
+
+		 /*
+		  * rolling version of getEntry - each base occupies 3 bits, so shift in the next base and mask off the one that has dropped out
+		  * avoids creating a new byte[] and re-encoding every base for each kmer
+		  */
+		 final int mask = (1 << (3 * merLength)) - 1;
+		 final int noOfMers = mersStrList.length;
+		 int entry = 0;
+		 for (int j = 0; j < merLength - 1; j ++) {
+			 entry = (entry << 3) | BASE_CODES[dataString[j] & 0xFF];
+		 }
 		 //readString may have different length to other reads
-		 for (int i = 0; i <= readString.length - merLength; i ++ ){
-			 byte[] mers = new byte[ merLength ];
-			 for (int j = 0; j <  merLength; j ++ ) {
-				 mers[j] = dataString[ i + j ];
-			 }
-			 int pos = getPosition(i, mers );
-			 tally.increment( pos );
-		 }		 		 		 
+		 for (int i = 0, j = merLength - 1; i < c; i ++, j ++){
+			 entry = ((entry << 3) | BASE_CODES[dataString[j] & 0xFF]) & mask;
+			 tally.increment( i * noOfMers + mersIndex[ entry ] );
+		 }
 	}
 	
+	/**
+	 * Adds the kmer counts held in the supplied summary (which must have the same kmer length) to this summary.
+	 * <p>Intended to be used to combine summaries that were populated by different threads, once those threads have finished.
+	 */
+	public void merge(KmersSummary other) {
+		if (other.merLength != merLength) {
+			throw new IllegalArgumentException("Can't merge KmersSummary objects with different kmer lengths: " + merLength + " and " + other.merLength);
+		}
+		tally.merge(other.tally);
+		if (other.cycleNo > cycleNo) cycleNo = other.cycleNo;
+	}
+
 	//	can't be private since unit test
 	int getPosition(int cycle, byte[] mers){
 		int entry = getEntry(mers);
@@ -116,17 +145,8 @@ public class KmersSummary {
 	
 	public static int getEntry(byte[] mers){
 		int entry = 0;
-		int no = 0;
-		int j = mers.length-1;
 		for (byte b : mers) {
-			switch (b){
-			case 'A' : no = 1; break;
-			case 'C' : no = 2; break;
-			case 'G' : no = 3; break;
-			case 'T' : no = 4; break;
-			default : no = 5; break;
-			}
-			entry += no << ( j-- * 3 );
+			entry = (entry << 3) | BASE_CODES[b & 0xFF];
 		}
 		return entry;
 	}

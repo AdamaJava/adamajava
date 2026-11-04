@@ -43,6 +43,9 @@ public abstract class SummaryReport {
  	public void updateRecordsParsed() {
 		recordsParsed.incrementAndGet();
 	}
+ 	public void updateRecordsParsed(long count) {
+ 		recordsParsed.addAndGet(count);
+ 	}
 
 	public String getStartTime() {
 		return startTime;

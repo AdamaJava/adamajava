@@ -50,14 +50,46 @@ public enum Comparator {
                 case Small -> Integer.parseInt(v1) < Integer.parseInt(v2);
                 case Equal -> v1.equalsIgnoreCase(v2);
                 case NotEqual -> !v1.equalsIgnoreCase(v2);
-                case StartWith -> v1.toLowerCase().startsWith(v2.toLowerCase());
-                case NotStartWith -> !v1.toLowerCase().startsWith(v2.toLowerCase());
-                case EndWith -> v1.toLowerCase().endsWith(v2.toLowerCase());
-                case NotEndWith -> !v1.toLowerCase().endsWith(v2.toLowerCase());
-                case Contain -> v1.toLowerCase().contains(v2.toLowerCase());
-                case NotContain -> !v1.toLowerCase().contains(v2.toLowerCase());
+                case StartWith -> startsWithIgnoreCase(v1, v2);
+                case NotStartWith -> !startsWithIgnoreCase(v1, v2);
+                case EndWith -> endsWithIgnoreCase(v1, v2);
+                case NotEndWith -> !endsWithIgnoreCase(v1, v2);
+                case Contain -> containsIgnoreCase(v1, v2);
+                case NotContain -> !containsIgnoreCase(v1, v2);
             };
 
+        }
+
+        /*
+         * case-insensitive matching without allocating lower-cased copies of each string, as these are called per record
+         */
+        static boolean startsWithIgnoreCase(String v1, String v2) {
+            return v1.regionMatches(true, 0, v2, 0, v2.length());
+        }
+
+        static boolean endsWithIgnoreCase(String v1, String v2) {
+            int offset = v1.length() - v2.length();
+            return offset >= 0 && v1.regionMatches(true, offset, v2, 0, v2.length());
+        }
+
+        static boolean containsIgnoreCase(String v1, String v2) {
+            int last = v1.length() - v2.length();
+            for (int i = 0; i <= last; i++) {
+                if (v1.regionMatches(true, i, v2, 0, v2.length())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * @return true if this comparator does a numeric comparison in eval(String, String) (ie. not a wildcard match)
+         */
+        public boolean isNumeric() {
+            return switch (this) {
+                case GreatEqual, SmallEqual, Great, Small, Equal, NotEqual -> true;
+                default -> false;
+            };
         }
 
  
