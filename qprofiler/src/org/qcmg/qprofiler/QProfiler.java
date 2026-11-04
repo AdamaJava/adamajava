@@ -235,7 +235,7 @@ public class QProfiler {
 				break;
 			case FASTQ:
 				if (noOfConsumerThreads > 0) {
-					summarizer = new FastqSummarizerMT(noOfConsumerThreads);
+					summarizer = new FastqSummarizerMT(noOfConsumerThreads, cmdLineInclude);
 				} else {
 					summarizer = new FastqSummarizer(cmdLineInclude);
 				}

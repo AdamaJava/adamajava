@@ -157,6 +157,25 @@ public class SummaryByCycleNew2<T> {
 	
 	
 	
+	/**
+	 * Adds the counts held in the supplied summary to this summary.
+	 * <p>Intended to be used to combine summaries that were populated by different threads, once those threads have finished.
+	 *
+	 * @param other SummaryByCycleNew2 whose counts will be added to this summary
+	 */
+	public void merge(final SummaryByCycleNew2<T> other) {
+		AtomicLongArray otherTally = other.tally;
+		for (int i = 0, length = otherTally.length() ; i < length ; i++) {
+			long value = otherTally.get(i);
+			if (value > 0) {
+				int [] cycleKey = other.getCycleKeyFromArrayPosition(i);
+				if (cycleKey[0] > maxCycleValue.get() || cycleKey[1] > maxKeyValue.get())
+					resize(cycleKey[0], cycleKey[1]);
+				tally.addAndGet(getArrayPosition(cycleKey[0], cycleKey[1]), value);
+			}
+		}
+	}
+
 	private void resize(final int cycle, final int key) {
 		
 		// find out if it is the cycle, key or both that are larger than current maximums

@@ -50,6 +50,19 @@ public class QCMGAtomicLongArray {
 		array.addAndGet(arrayPosition, value);
 	}
 	
+	/**
+	 * Adds the values held in the supplied array to this array, position by position.
+	 * <p>Intended to be used to combine arrays that were populated by different threads, once those threads have finished.
+	 */
+	public void merge(final QCMGAtomicLongArray other) {
+		for (int i = 0, length = other.length() ; i < length ; i++) {
+			long value = other.get(i);
+			if (value != 0) {
+				increment(i, value);
+			}
+		}
+	}
+
 	public long get(int arrayPosition) { 	return array.get(arrayPosition); }
 	public int length() { 	return array.length(); }
 	
