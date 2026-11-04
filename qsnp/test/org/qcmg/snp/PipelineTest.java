@@ -13,7 +13,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMRecordFilterWrapper;
@@ -34,6 +37,38 @@ public class PipelineTest {
 		VcfHeader h = Pipeline.getHeaderForQSnp("abc", "123", "456", "qsnp", null, null, "xyz");
         assertNotNull(h.getFormatRecord(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND));
         assertTrue(h.getFormatRecord(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND).toString().contains(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC));
+	}
+
+	@Test
+	public void compoundSnpsOnlyLooksAtCurrentContig() {
+		final Pipeline pipeline = new TestPipeline();
+		
+		// first contig - non-adjacent snps, whose accumulators are no longer needed once the contig is done
+		VcfRecord chr1Snp1 = VcfUtils.createVcfRecord("chr1", 100);
+		VcfRecord chr1Snp2 = VcfUtils.createVcfRecord("chr1", 200);
+		pipeline.snps.add(chr1Snp1);
+		pipeline.snps.add(chr1Snp2);
+		pipeline.adjacentAccumulators.put(chr1Snp1, new Pair<>(new Accumulator(100), new Accumulator(100)));
+		pipeline.adjacentAccumulators.put(chr1Snp2, new Pair<>(new Accumulator(200), new Accumulator(200)));
+		
+		pipeline.compoundSnps(true);
+		assertTrue(pipeline.adjacentAccumulators.isEmpty());
+		assertEquals(2, pipeline.currentContigSnpsStartIndex);
+		assertEquals(Arrays.asList(chr1Snp1, chr1Snp2), pipeline.snps);
+		
+		// second contig - adjacent snps, but without both control and test accumulators so no compound snp is created
+		VcfRecord chr2Snp1 = VcfUtils.createVcfRecord("chr2", 100);
+		VcfRecord chr2Snp2 = VcfUtils.createVcfRecord("chr2", 101);
+		pipeline.snps.add(chr2Snp1);
+		pipeline.snps.add(chr2Snp2);
+		pipeline.adjacentAccumulators.put(chr2Snp1, new Pair<>(null, new Accumulator(100)));
+		pipeline.adjacentAccumulators.put(chr2Snp2, new Pair<>(null, new Accumulator(101)));
+		
+		pipeline.compoundSnps(true);
+		assertTrue(pipeline.adjacentAccumulators.isEmpty());
+		assertEquals(4, pipeline.currentContigSnpsStartIndex);
+		assertEquals(Arrays.asList(chr1Snp1, chr1Snp2, chr2Snp1, chr2Snp2), pipeline.snps);
+		assertTrue(pipeline.compoundSnps.isEmpty());
 	}
 
 	@Test
@@ -59,6 +94,97 @@ public class PipelineTest {
 			}
 		}
 		assertEquals("4511341:T9[24]18[36.44]", array[4511341].toString());
+	}
+
+	@Test
+	public void consumerDataMatchesAddBase() {
+		final Pipeline pipeline = new TestPipeline();
+		Accumulator[] array = new Accumulator[5000000];
+		Pipeline.Consumer c = pipeline.new Consumer(new CountDownLatch(1), new CountDownLatch(1), new CountDownLatch(1), false, null, null, array, null, new AtomicInteger(100));
+
+		/*
+		 * build the expected accumulators using Accumulator.addBase, which does its own end of read and encoding calculations
+		 */
+		Accumulator[] expected = new Accumulator[5000000];
+		long passedBases = 0;
+		long failedBases = 0;
+		long readId = 1;
+		for (SAMRecord rec : getRecords()) {
+			if ( ! SAMUtils.isSAMRecordValidForVariantCalling(rec)) {
+				continue;
+			}
+			SAMRecordFilterWrapper srw = new SAMRecordFilterWrapper(rec, readId);
+			srw.setPassesFilter(true);
+			c.processSAMRecord(srw);
+
+			int refPos = rec.getAlignmentStart(), readPos = 0;
+			for (htsjdk.samtools.CigarElement ce : rec.getCigar().getCigarElements()) {
+				htsjdk.samtools.CigarOperator co = ce.getOperator();
+				for (int i = 0 ; i < ce.getLength() ; i++) {
+					if (co.consumesReferenceBases() && co.consumesReadBases()) {
+						if (null == expected[refPos]) expected[refPos] = new Accumulator(refPos);
+						byte qual = rec.getBaseQualities()[readPos];
+						if (qual >= pipeline.minBaseQual) {
+							expected[refPos].addBase(rec.getReadBases()[readPos], qual, ! rec.getReadNegativeStrandFlag(),
+									rec.getAlignmentStart(), refPos, rec.getAlignmentEnd(), readId);
+							passedBases++;
+						} else {
+							expected[refPos].addFailedFilterBase(rec.getReadBases()[readPos], readId);
+							failedBases++;
+						}
+					}
+					if (co.consumesReferenceBases()) refPos++;
+					if (co.consumesReadBases()) readPos++;
+				}
+			}
+			readId++;
+		}
+
+		int positionsWithData = 0;
+		for (int i = 0 ; i < array.length ; i++) {
+			if (null == expected[i]) {
+				assertNull(array[i]);
+				continue;
+			}
+			assertEquals(expected[i].getData(), array[i].getData());
+			assertEquals(expected[i].getFailedFilterPileup(), array[i].getFailedFilterPileup());
+			assertEquals(expected[i].getFailedFilterACount(), array[i].getFailedFilterACount());
+			assertEquals(expected[i].getFailedFilterCCount(), array[i].getFailedFilterCCount());
+			assertEquals(expected[i].getFailedFilterGCount(), array[i].getFailedFilterGCount());
+			assertEquals(expected[i].getFailedFilterTCount(), array[i].getFailedFilterTCount());
+			if (expected[i].getCoverage() > 0) positionsWithData++;
+		}
+		assertTrue(passedBases > 0);
+		assertEquals(passedBases, c.passedBasesAdded);
+		assertEquals(positionsWithData, c.positionsWithPassedBases);
+		assertTrue(failedBases > 0);
+		assertEquals(failedBases, c.failedBasesAdded);
+	}
+
+	@Test
+	public void updateInitialDataCapacity() {
+		final Pipeline pipeline = new TestPipeline();
+		Pipeline.Consumer c = pipeline.new Consumer(new CountDownLatch(1), new CountDownLatch(1), new CountDownLatch(1), false, null, null, new Accumulator[10], null, new AtomicInteger(100));
+
+		// no data yet - default
+		c.updateInitialDataCapacity();
+		assertEquals(Accumulator.DEFAULT_INITIAL_DATA_CAPACITY, c.initialDataCapacity);
+
+		// 100x - 2 longs per base, plus 25%
+		c.passedBasesAdded = 100_000;
+		c.positionsWithPassedBases = 1_000;
+		c.updateInitialDataCapacity();
+		assertEquals(250, c.initialDataCapacity);
+
+		// low coverage - min
+		c.passedBasesAdded = 2_000;
+		c.updateInitialDataCapacity();
+		assertEquals(Pipeline.Consumer.MIN_INITIAL_DATA_CAPACITY, c.initialDataCapacity);
+
+		// very high coverage - max
+		c.passedBasesAdded = 10_000_000;
+		c.updateInitialDataCapacity();
+		assertEquals(Pipeline.Consumer.MAX_INITIAL_DATA_CAPACITY, c.initialDataCapacity);
 	}
 	
 	private List<SAMRecord> getRecords() {
