@@ -14,6 +14,66 @@ import static org.junit.Assert.*;
 
 public class AccumulatorUtilsTest {
 
+    /*
+     * the original (switch based) encoding, kept here to check that the per-read/per-base split encoding is identical
+     */
+    private static long originalEncoding(boolean forwardStrand, boolean endOfRead, byte base, byte quality, int position) {
+        long l = 0;
+        if (forwardStrand) {
+            l |= AccumulatorUtils.STRAND_BIT;
+        }
+        if (endOfRead) {
+            l |= AccumulatorUtils.END_OF_READ_BIT;
+        }
+        switch (base) {
+            case Accumulator.A_BYTE: l |= AccumulatorUtils.A_BASE_BIT; break;
+            case Accumulator.C_BYTE: l |= AccumulatorUtils.C_BASE_BIT; break;
+            case Accumulator.G_BYTE: l |= AccumulatorUtils.G_BASE_BIT; break;
+            case Accumulator.T_BYTE: l |= AccumulatorUtils.T_BASE_BIT; break;
+            default: break;
+        }
+        l += (long) quality << AccumulatorUtils.QUALITY_BIT_POSITION;
+        l += position;
+        return l;
+    }
+
+    @Test
+    public void encodeBaseMatchesOriginalEncoding() {
+        int[] positions = {0, 1, 12345, 1234567890, Integer.MAX_VALUE, -1, Integer.MIN_VALUE};
+        for (boolean forwardStrand : new boolean[]{true, false}) {
+            for (int position : positions) {
+                long readBits = AccumulatorUtils.encodeReadBits(forwardStrand, position);
+                for (boolean endOfRead : new boolean[]{true, false}) {
+                    for (int base = Byte.MIN_VALUE; base <= Byte.MAX_VALUE; base++) {
+                        for (int qual = Byte.MIN_VALUE; qual <= Byte.MAX_VALUE; qual++) {
+                            long expected = originalEncoding(forwardStrand, endOfRead, (byte) base, (byte) qual, position);
+                            assertEquals(expected, AccumulatorUtils.encodeBase(readBits, endOfRead, (byte) base, (byte) qual));
+                            assertEquals(expected, AccumulatorUtils.convertStrandEORBaseQualAndPositionToLong(forwardStrand, endOfRead, (byte) base, (byte) qual, position));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    public void addEncodedBase() {
+        Accumulator acc = new Accumulator(100);
+        long encoded = AccumulatorUtils.convertStrandEORBaseQualAndPositionToLong(true, false, (byte) 'A', (byte) 30, 90);
+        assertTrue(acc.addEncodedBase(1L, encoded, 4));
+        assertFalse(acc.addEncodedBase(2L, encoded, 4));
+        assertFalse(acc.addEncodedBase(3L, encoded, 4));    // grows beyond initial capacity
+        assertEquals(3, acc.getCoverage());
+        assertEquals(new TLongArrayList(new long[]{1L, encoded, 2L, encoded, 3L, encoded}), acc.getData());
+
+        // same data as addBase
+        Accumulator acc2 = new Accumulator(100);
+        acc2.addBase((byte) 'A', (byte) 30, true, 90, 100, 200, 1L);
+        acc2.addBase((byte) 'A', (byte) 30, true, 90, 100, 200, 2L);
+        acc2.addBase((byte) 'A', (byte) 30, true, 90, 100, 200, 3L);
+        assertEquals(acc2.getData(), acc.getData());
+    }
+
     @Test
     public void baseDetails() {
         AccumulatorUtils.BaseDetails bd1 = new AccumulatorUtils.BaseDetails('A', 0, 0, false);
@@ -443,6 +503,113 @@ public class AccumulatorUtilsTest {
         assertTrue(bs.get(2));
         assertTrue(bs.get(3));
         assertTrue(AccumulatorUtils.doesBitSetContainMoreThan1True(bs));
+    }
+
+    @Test
+    public void passesInitialCheckSingleAccumulator() {
+        assertTrue(AccumulatorUtils.passesInitialCheck(null, 'A'));     // no bases, ref not seen
+        assertFalse(AccumulatorUtils.passesInitialCheck(null, 'N'));
+
+        Accumulator acc = new Accumulator(150);
+        acc.addFailedFilterBase((byte) 'C', 1);
+        assertTrue(AccumulatorUtils.passesInitialCheck(acc, 'A'));
+
+        acc.addBase((byte) 'A', (byte) 30, true, 100, 150, 200, 1);
+        acc.addBase((byte) 'A', (byte) 30, false, 100, 150, 200, 2);
+        assertFalse(AccumulatorUtils.passesInitialCheck(acc, 'A'));
+        assertFalse(AccumulatorUtils.passesInitialCheck(acc, 'a'));
+        assertTrue(AccumulatorUtils.passesInitialCheck(acc, 'C'));
+        assertFalse(AccumulatorUtils.passesInitialCheck(acc, 'N'));
+
+        acc.addBase((byte) 'G', (byte) 30, true, 100, 150, 200, 3);
+        assertTrue(AccumulatorUtils.passesInitialCheck(acc, 'A'));
+        assertTrue(AccumulatorUtils.passesInitialCheck(acc, 'N'));
+    }
+
+    @Test
+    public void passesInitialCheckControlAndTest() {
+        Accumulator control = new Accumulator(150);
+        Accumulator test = new Accumulator(150);
+        control.addBase((byte) 'T', (byte) 30, true, 100, 150, 200, 1);
+        test.addBase((byte) 'T', (byte) 30, false, 100, 150, 200, 2);
+        assertFalse(AccumulatorUtils.passesInitialCheck(control, test, 'T'));
+        assertTrue(AccumulatorUtils.passesInitialCheck(control, test, 'G'));
+
+        // different single bases
+        Accumulator test2 = new Accumulator(150);
+        test2.addBase((byte) 'C', (byte) 30, false, 100, 150, 200, 2);
+        assertTrue(AccumulatorUtils.passesInitialCheck(control, test2, 'T'));
+
+        // empty control vs single ref base in test
+        assertTrue(AccumulatorUtils.passesInitialCheck(new Accumulator(150), test, 'T'));
+        assertTrue(AccumulatorUtils.passesInitialCheck(null, test, 'T'));
+
+        // multiple bases in test
+        test.addBase((byte) 'A', (byte) 30, false, 100, 150, 200, 3);
+        assertTrue(AccumulatorUtils.passesInitialCheck(control, test, 'T'));
+    }
+
+    @Test
+    public void passesInitialCheckMatchesBitSetImplementation() {
+        byte[] bases = {'A', 'C', 'G', 'T', 'N'};
+        char[] refs = {'A', 'C', 'G', 'T', 'a', 'c', 'g', 't', 'N'};
+        java.util.Random random = new java.util.Random(42);
+        for (int iteration = 0; iteration < 5000; iteration++) {
+            Accumulator acc1 = random.nextInt(5) == 0 ? null : new Accumulator(150);
+            Accumulator acc2 = random.nextInt(5) == 0 ? null : new Accumulator(150);
+            for (Accumulator acc : new Accumulator[]{acc1, acc2}) {
+                if (null != acc) {
+                    int noOfBases = random.nextInt(6);
+                    // bias towards a single base so that the "same single base" path is exercised
+                    byte singleBase = bases[random.nextInt(4)];
+                    boolean useSingleBase = random.nextBoolean();
+                    for (int i = 0; i < noOfBases; i++) {
+                        byte b = useSingleBase ? singleBase : bases[random.nextInt(bases.length)];
+                        acc.addBase(b, (byte) 30, random.nextBoolean(), 100, 150, 200, i);
+                    }
+                }
+            }
+            for (char ref : refs) {
+                assertEquals(bitSetPassesInitialCheck(acc1, ref), AccumulatorUtils.passesInitialCheck(acc1, ref));
+                assertEquals(bitSetPassesInitialCheck(acc1, acc2, ref), AccumulatorUtils.passesInitialCheck(acc1, acc2, ref));
+            }
+        }
+    }
+
+    /*
+     * original BitSet based implementations of passesInitialCheck, used to confirm that the optimised versions behave the same
+     */
+    private static boolean bitSetPassesInitialCheck(Accumulator acc, char ref) {
+        BitSet bs = AccumulatorUtils.getUniqueBases(acc);
+        if (AccumulatorUtils.doesBitSetContainMoreThan1True(bs)) {
+            return true;
+        }
+        return isRefNotInBitSet(bs, ref);
+    }
+
+    private static boolean bitSetPassesInitialCheck(Accumulator acc1, Accumulator acc2, char ref) {
+        BitSet bs1 = AccumulatorUtils.getUniqueBases(acc1);
+        if (AccumulatorUtils.doesBitSetContainMoreThan1True(bs1)) {
+            return true;
+        }
+        BitSet bs2 = AccumulatorUtils.getUniqueBases(acc2);
+        if (AccumulatorUtils.doesBitSetContainMoreThan1True(bs2)) {
+            return true;
+        }
+        if (!AccumulatorUtils.doBitSetsHaveSameBitsSet(bs1, bs2)) {
+            return true;
+        }
+        return isRefNotInBitSet(bs1, ref);
+    }
+
+    private static boolean isRefNotInBitSet(BitSet bs, char ref) {
+        return switch (Character.toUpperCase(ref)) {
+            case 'A' -> !bs.get(AccumulatorUtils.A_POSITION);
+            case 'C' -> !bs.get(AccumulatorUtils.C_POSITION);
+            case 'G' -> !bs.get(AccumulatorUtils.G_POSITION);
+            case 'T' -> !bs.get(AccumulatorUtils.T_POSITION);
+            default -> false;
+        };
     }
 
     @Test
