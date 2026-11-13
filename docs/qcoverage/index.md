@@ -81,6 +81,15 @@ Option              Description
 --per-feature       Opt, to run the per-feature coverage mode. Default is to run
                       standard coverage mode without this option.
 --query             Opt, the query string for selecting reads for coverage.
+                      Used for all of the coverage types that do not have
+                      their own query.
+--sequence-query    Opt, the query string for sequence coverage. Overrides
+                      --query for this type.
+--physical-query    Opt, the query string for physical coverage. Overrides
+                      --query for this type.
+--low-readdepth-query
+                    Opt, the query string for low_readdepth coverage, used for
+                      all of the cutoffs. Overrides --query for this type.
 --thread <Integer>  Opt, number of worker threads (yields n+1 total threads).
 --type              Req, the type of coverage to perform. Possible Values: [sequence,
                       physical]. 
@@ -231,6 +240,29 @@ java -jar qcoverage.jar --type sequence\
 
 The `-q` string specifies that only quality-passed, non-duplicate, mapped,
 primary alignment reads are included for the read depth calculations.
+
+### different queries per coverage type
+
+When several coverage types are calculated in the one invocation, `--query`
+is applied to all of them. A coverage type can be given its own filter with
+`--sequence-query`, `--physical-query` or `--low-readdepth-query`, which take
+precedence over `--query` for that type. Each of these options may be
+specified once, and only when the corresponding `--type` has been requested.
+The `--low-readdepth-query` is used for all of the low read depth cutoffs. An
+empty query (`""`) means that no reads are filtered out for that type.
+
+~~~~{.text}
+java -jar qcoverage.jar --type sequence --type physical --type low_readdepth \
+    --query "and(flag_DuplicateRead==false, MAPQ>10)" \
+    --physical-query "and(flag_DuplicateRead==false, flag_ReadPaired==true)" \
+    --low-readdepth-query "and(flag_DuplicateRead==false, MAPQ>=10)" \
+    --readdepth-cutoff 8 --readdepth-cutoff 12 \
+    --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile
+~~~~
+
+Here sequence coverage uses the `--query` filter, physical coverage uses the
+`--physical-query` filter, and both low read depth cutoffs use the
+`--low-readdepth-query` filter.
 
 ## Examples
 
