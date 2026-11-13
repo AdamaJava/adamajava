@@ -112,6 +112,12 @@ Run the following command to start execution.
 java -Xmx20g -jar qsnp-1.0.jar -i qsnp_demo.ini -log /path/to/qsnp/qsnpdemo.log
 ~~~~
 
+For whole genome tumour/normal pairs, the parallel garbage collector is recommended. On a ~100x/40x WGS pair it ran ~11% faster than the default (G1) collector and used about half the CPU, with identical output. Allow ample heap (60GB was used in testing):
+
+~~~~{.text}
+java -XX:+UseParallelGC -Xms60g -Xmx60g -jar qsnp-1.0.jar -i qsnp_demo.ini -log /path/to/qsnp/qsnpdemo.log
+~~~~
+
 This will log both to console and to the specified log file.
 The log file looks like:
 
