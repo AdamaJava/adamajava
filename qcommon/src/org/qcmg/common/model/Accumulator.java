@@ -213,14 +213,14 @@ public class Accumulator {
      *
      * @param readNameHash
      * @param encodedBase
-     * @param initialCapacity capacity (in longs - each base uses 2) of the data list if this is the first base added to this Accumulator
-     * @return true if this was the first base added to this Accumulator
+     * @param initialCapacity capacity (in longs - each base uses 2) of the data array if it has not yet been allocated
+     * @return true if this was the first base added to this Accumulator (ie. it held no bases before this call, including after {@link #setData(TLongList)} with an empty list)
      */
     public boolean addEncodedBase(long readNameHash, long encodedBase, int initialCapacity) {
         long[] d = data;
         final int size = dataSize;
-        final boolean first = null == d;
-        if (first) {
+        final boolean first = size == 0;
+        if (null == d) {
             d = new long[Math.max(2, initialCapacity)];
             data = d;
         } else if (size + 2 > d.length) {

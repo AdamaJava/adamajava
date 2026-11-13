@@ -7,6 +7,7 @@ package org.qcmg.snp;
 
 import java.util.AbstractQueue;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -14,9 +15,10 @@ import java.util.concurrent.atomic.LongAdder;
  * A {@link ConcurrentLinkedQueue} wrapper with a constant time {@link #size()}.
  * <p>
  * {@link ConcurrentLinkedQueue#size()} traverses every node in the queue, which is expensive when the queue holds many records.
- * This class keeps a running count instead. The count is updated after the underlying offer/poll, so it can briefly be out by
- * the number of in-flight operations - fine for back pressure checks, but use {@link #isEmpty()} (which delegates to the
- * underlying queue) for an exact emptiness check.
+ * This class keeps a running count instead. The count is incremented before the underlying offer and decremented after a successful
+ * poll, so every element in the queue has always been counted: {@link #size()} never under-counts, but can briefly over-count by
+ * the number of in-flight operations. That is the safe direction for back pressure and "wait until empty" checks.
+ * Use {@link #isEmpty()} (which delegates to the underlying queue) for an exact emptiness check.
  * <p>
  * Elements can only be removed via {@link #poll()} - the iterator is read only so that the count can't drift.
  *
@@ -32,8 +34,12 @@ public class CountingConcurrentQueue<E> extends AbstractQueue<E> {
 
 	@Override
 	public boolean offer(E e) {
-		queue.offer(e);		// always returns true (or throws NPE for null)
+		Objects.requireNonNull(e);
+		/*
+		 * count first, so that a consumer polling this element straight away can't take the count below the number of elements in the queue
+		 */
 		count.increment();
+		queue.offer(e);		// always returns true for a non-null element
 		return true;
 	}
 

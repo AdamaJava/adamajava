@@ -2,6 +2,7 @@ package org.qcmg.snp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -46,6 +47,49 @@ public class CountingConcurrentQueueTest {
 	@Test(expected = NullPointerException.class)
 	public void nullNotAllowed() {
 		new CountingConcurrentQueue<String>().offer(null);
+	}
+
+	@Test
+	public void nullDoesNotChangeTheCount() {
+		CountingConcurrentQueue<String> q = new CountingConcurrentQueue<>();
+		try {
+			q.offer(null);
+			fail("expected a NullPointerException");
+		} catch (NullPointerException expected) {
+			// expected
+		}
+		assertEquals(0, q.size());
+		assertTrue(q.isEmpty());
+	}
+
+	/*
+	 * With a single consumer, an element that the consumer can see must already have been counted, so size() must not be 0
+	 * (the count is incremented before the element is added to the underlying queue)
+	 */
+	@Test
+	public void sizeNeverUnderCounts() throws InterruptedException {
+		final int n = 2_000_000;
+		CountingConcurrentQueue<Integer> q = new CountingConcurrentQueue<>();
+		Thread producer = new Thread(() -> {
+			for (int i = 0; i < n; i++) {
+				q.offer(i);
+			}
+		});
+		producer.start();
+		int polled = 0;
+		int underCounts = 0;
+		while (polled < n) {
+			if ( ! q.isEmpty()) {
+				if (q.size() < 1) {
+					underCounts++;
+				}
+				assertNotNull(q.poll());
+				polled++;
+			}
+		}
+		producer.join();
+		assertEquals(0, underCounts);
+		assertEquals(0, q.size());
 	}
 
 	@Test

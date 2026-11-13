@@ -389,8 +389,9 @@ public class AccumulatorTest {
         acc.setData(new TLongArrayList());
         assertEquals(0, acc.getCoverage());
         assertFalse(acc.isEmpty());
-        assertFalse(acc.addEncodedBase(1L, 2L, 80));
+        assertTrue(acc.addEncodedBase(1L, 2L, 80));		// first base, even though the data array already exists
         assertEquals(1, acc.getCoverage());
+        assertFalse(acc.addEncodedBase(3L, 4L, 80));
     }
 
 
