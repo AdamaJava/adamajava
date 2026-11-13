@@ -61,7 +61,10 @@ public final class JobQueue {
 	private final BlockingQueue<Job> jobQueue = new LinkedBlockingQueue<>();
 	private final LoggerInfo loggerInfo;
 	private final QLogger logger;
-	private final QueryExecutor filter;
+	/**
+	 * The filter used to select the reads for each of the coverage types.
+	 */
+	private final Map<Object, QueryExecutor> filters;
 	/**
 	 * The algorithm to be used for each of the coverage types.
 	 */
@@ -73,7 +76,7 @@ public final class JobQueue {
 
 	public JobQueue(final Configuration invariants) throws Exception {
 		gff3File = invariants.getInputGFF3File();
-		filter = invariants.getFilter();
+		filters = invariants.getFilters();
 		algorithms = invariants.getAlgorithms();
 		numberThreads = invariants.getNumberThreads();
 		filePairs = invariants.getFilePairs();
@@ -142,7 +145,7 @@ public final class JobQueue {
 			
 			CoverageJob job = new CoverageJob(refname,
 					refLength, perRefnameFeatures, filePairs, getBamFileInfo(refname),
-					filter, options.hasPerFeatureOption(), algorithms, countIn, countOut, validation);
+					filters, options.hasPerFeatureOption(), algorithms, countIn, countOut, validation);
 			jobQueue.add(job);
 		}
 		logger.info("Number of queued coverage jobs: " + jobQueue.size());

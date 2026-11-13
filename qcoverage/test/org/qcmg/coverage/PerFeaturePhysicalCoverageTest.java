@@ -2,6 +2,7 @@ package org.qcmg.coverage;
 
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 import org.junit.*;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.record.RecordWriter;
 
@@ -26,9 +27,15 @@ public class PerFeaturePhysicalCoverageTest {
 	static Gff3Record record;
 
 
+	/*
+	 * deleted (with everything in it) once all the tests have run
+	 */
+	@ClassRule
+	public static TemporaryFolder classFolder = new TemporaryFolder();
+
 	@BeforeClass
 	 public static void setup() throws IOException {
-		 tmpDir = Files.createTempDirectory(null);
+		 tmpDir = classFolder.getRoot().toPath();
 		 inputBam = Files.createTempFile(tmpDir, null, ".bam").toString();
 		 inputBai = inputBam.replace("bam", "bai");
 		 SequenceCoverageTest.createCoverageBam(inputBam, SequenceCoverageTest.getAACSAMRecords(SortOrder.coordinate), SequenceCoverageTest.createSamHeaderObject(SortOrder.coordinate));
@@ -41,10 +48,6 @@ public class PerFeaturePhysicalCoverageTest {
 		record.setStrand("+");
 	 }
 	 
-	 @AfterClass
-	 public static void tearDown() {
-		tmpDir.toFile().delete();
-	 }
 
 	@Before
 	public final void before() {

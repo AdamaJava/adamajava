@@ -5,5 +5,6 @@ if [ -z "$ADAMA_HOME" ]; then
     exit 1
 fi
 
-java -jar ${ADAMA_HOME}/build/lib/qsnp.jar "$@"
+# Parallel GC: ~11% faster than the default G1 and half the CPU on a WGS pair (identical output)
+java -XX:+UseParallelGC -jar ${ADAMA_HOME}/build/lib/qsnp.jar "$@"
 #java -jar ${ADAMA_HOME}/build/lib/qsnp-0.1pre.jar "$@"

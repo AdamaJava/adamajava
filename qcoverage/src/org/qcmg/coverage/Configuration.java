@@ -5,7 +5,6 @@ package org.qcmg.coverage;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,7 +28,6 @@ public final class Configuration {
 	private File[] inputBAIFiles;
 	private final HashSet<Pair<File, File>> filePairs = new HashSet<>();
 	private final Options options;
-	private final QueryExecutor filter;
 	private final LoggerInfo loggerInfo;
 	private final String validation;
 	private final ReadsNumberCounter countReadFromInput;
@@ -44,6 +42,11 @@ public final class Configuration {
 	 * Whether the coverage should be reported per feature, for each of the coverage types.
 	 */
 	private final Map<Object, Boolean> perFeatureFlags = new LinkedHashMap<>();
+	/**
+	 * The filter used to select the reads for each of the coverage types. A coverage type
+	 * without a filter is not present in the map.
+	 */
+	private final Map<Object, QueryExecutor> filters = new LinkedHashMap<>();
 	/**
 	 * Whether the coverage should be reported per feature, as requested on the command line.
 	 */
@@ -61,38 +64,25 @@ public final class Configuration {
 
 		type = options.getTypes()[0];
 		final Integer[] lowReadDepthCutoffs = options.getLowReadDepthCutoffs();
-		final long lowReadDepthTypes = Arrays.stream(options.getTypes())
-				.filter("low_readdepth"::equals)
-				.count();
-		/*
-		 * When a single low_readdepth type is requested but several cutoffs are supplied, each
-		 * cutoff results in a separate low read depth coverage.
-		 */
-		final int lowReadDepthInstances = (null != lowReadDepthCutoffs && lowReadDepthCutoffs.length > 1
-				&& lowReadDepthTypes == 1) ? lowReadDepthCutoffs.length : 1;
-		int lowReadDepthCount = 0;
+		// the query to be used for each of the coverage types, if any
+		final Map<Object, String> queriesByType = new LinkedHashMap<>();
 		for (final String typeName : options.getTypes()) {
+			// all of the low_readdepth coverages share the same query
+			final String query = options.getQuery(typeName);
 			if ("low_readdepth".equals(typeName)) {
-				for (int instance = 0; instance < lowReadDepthInstances; instance++) {
-					final Integer cutoff;
-					if (null == lowReadDepthCutoffs || lowReadDepthCutoffs.length == 0) {
-						cutoff = options.getLowReadDepthCutoff();
-					} else if (lowReadDepthCutoffs.length == 1) {
-						// a single cutoff is used for all of the low_readdepth types
-						cutoff = lowReadDepthCutoffs[0];
-					} else {
-						cutoff = lowReadDepthCutoffs[lowReadDepthCount];
-					}
-					lowReadDepthCount++;
-					/*
-					 * The low read depth coverage type can be specified more than once (with a
-					 * different cutoff each time), so the occurrences are keyed by their position.
-					 */
-					final Object key = new CoverageTypeKey(CoverageType.LOW_READDEPTH,
-							lowReadDepthCount - 1, cutoff);
+				/*
+				 * Each cutoff results in a separate low read depth coverage, so the coverages are
+				 * keyed by the position of their cutoff.
+				 */
+				for (int instance = 0; instance < lowReadDepthCutoffs.length; instance++) {
+					final Integer cutoff = lowReadDepthCutoffs[instance];
+					final Object key = new CoverageTypeKey(CoverageType.LOW_READDEPTH, instance, cutoff);
 					// the low read depth coverage is always reported per feature
 					algorithms.put(key, new LowReadDepthAlgorithm(cutoff));
 					perFeatureFlags.put(key, true);
+					if (null != query && !query.isBlank()) {
+						queriesByType.put(key, query);
+					}
 				}
 				continue;
 			}
@@ -116,12 +106,29 @@ public final class Configuration {
 			final boolean perFeature = options.hasPerFeatureOption();
 			algorithms.put(coverageType, algorithm);
 			perFeatureFlags.put(coverageType, perFeature);
+			if (null != query && !query.isBlank()) {
+				queriesByType.put(coverageType, query);
+			}
 		}
 
 		loggerInfo = new LoggerInfo(options);
 		logger = QLoggerFactory.getLogger(Configuration.class);
 		
 		validation = options.getValidation();
+
+		/*
+		 * Each distinct query is only parsed once, so that coverage types sharing a query also
+		 * share a filter, and the filter is only executed once for each read.
+		 */
+		final Map<String, QueryExecutor> queryExecutors = new LinkedHashMap<>();
+		for (final Map.Entry<Object, String> e : queriesByType.entrySet()) {
+			QueryExecutor filter = queryExecutors.get(e.getValue());
+			if (null == filter) {
+				filter = new QueryExecutor(e.getValue());
+				queryExecutors.put(e.getValue(), filter);
+			}
+			filters.put(e.getKey(), filter);
+		}
 
 		inputGFF3FileName = options.getInputGFF3FileNames()[0];
 		bamFileNames = options.getBAMFileNames();
@@ -137,12 +144,6 @@ public final class Configuration {
 			numberThreads = 1;
 		}
 
-		if (options.hasQueryOption()) {
-			filter = new QueryExecutor(options.getQuery());
-		} else {
-			filter = null;
-		}
-		
 		if (options.hasVcfFlag() && ! perFeatureFlag) {
 			logger.warn("VCF mode has been selected, however, the per-feature flag has not been set" +
 					" - will not be able to create the vcf file");
@@ -174,17 +175,6 @@ public final class Configuration {
 		long lowReadDepthInstances = algorithms.keySet().stream()
 				.filter(key -> key instanceof CoverageTypeKey coverageTypeKey && coverageTypeKey.type == CoverageType.LOW_READDEPTH)
 				.count();
-		/*
-		 * If the same cutoff has been requested more than once, the cutoff cannot be used to
-		 * distinguish the output files, so fall back to the position of the coverage type.
-		 */
-		final Map<Integer, Integer> cutoffCounts = new LinkedHashMap<>();
-		for (final Object key : algorithms.keySet()) {
-			if (key instanceof CoverageTypeKey coverageTypeKey && null != coverageTypeKey.cutoff) {
-				cutoffCounts.merge(coverageTypeKey.cutoff, 1, Integer::sum);
-			}
-		}
-		final boolean duplicateCutoffs = cutoffCounts.values().stream().anyMatch(count -> count > 1);
 		for (final Object key : algorithms.keySet()) {
 			if (outputNames.length == algorithms.size()) {
 				// one output file name has been provided for each coverage type
@@ -195,11 +185,7 @@ public final class Configuration {
 				 * The cutoff is used to distinguish the low read depth coverages, as that is what
 				 * differs between them.
 				 */
-				String suffix = "";
-				if (lowReadDepthInstances > 1) {
-					suffix = (duplicateCutoffs || null == coverageTypeKey.cutoff)
-							? String.valueOf(coverageTypeKey.index) : coverageTypeKey.cutoff.toString();
-				}
+				final String suffix = lowReadDepthInstances > 1 ? coverageTypeKey.cutoff.toString() : "";
 				outputFileNames.put(key, deriveOutputFileName(outputNames[0], coverageTypeKey.type, suffix));
 			} else {
 				outputFileNames.put(key, deriveOutputFileName(outputNames[0], (CoverageType) key, ""));
@@ -330,8 +316,12 @@ public final class Configuration {
 		return (CoverageType) key;
 	}
 
-	public QueryExecutor getFilter() {
-		return filter;
+	/**
+	 * @return the filter used to select the reads for each of the coverage types. A coverage
+	 *         type that has no filter is not present in the map.
+	 */
+	public Map<Object, QueryExecutor> getFilters() {
+		return filters;
 	}
 	
 	/**

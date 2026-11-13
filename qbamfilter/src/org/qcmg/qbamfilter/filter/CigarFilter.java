@@ -57,7 +57,9 @@ public class CigarFilter  implements SamRecordFilter{
         int result  = 0;
         
         //eg. cigar = "25M5S15M", here r 2 operator "M" and 1 "S"
-        for (CigarElement element : cigar.getCigarElements()) {
+        // index based loop - iterating over getCigarElements() allocates 2 iterators per record (unmodifiable list wrapper)
+        for (int i = 0, numElements = cigar.numCigarElements(); i < numElements; i++) {
+            final CigarElement element = cigar.getCigarElement(i);
             if (operator == element.getOperator()) {
                 result += element.getLength();
                 // Early termination if result already exceeds the threshold

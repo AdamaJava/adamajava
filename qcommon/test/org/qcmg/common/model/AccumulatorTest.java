@@ -1,5 +1,7 @@
 package org.qcmg.common.model;
 
+import gnu.trove.list.TLongList;
+import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TLongCharMap;
 import org.junit.Assert;
 import org.junit.Test;
@@ -317,6 +319,112 @@ public class AccumulatorTest {
             acc.addBase((byte) 'A', (byte) random.nextInt(101), false, 99100 + whoKnows, 100000, 1000000 + whoKnows, 1);
         }
         System.out.println("time taken for " + noOfLoops + " addBases: " + (System.currentTimeMillis() - start));
+    }
+
+
+    @Test
+    public void addEncodedBaseGrowsBeyondInitialCapacity() {
+        Accumulator acc = new Accumulator(100);
+        assertNull(acc.getDataArray());
+        assertEquals(0, acc.getDataSize());
+        assertTrue(acc.isEmpty());
+
+        // initial capacity of 0 and 3 (odd) must still work
+        for (int initialCapacity : new int[]{0, 3, 4}) {
+            acc = new Accumulator(100);
+            TLongList expected = new TLongArrayList();
+            for (int i = 0; i < 1000; i++) {
+                boolean first = acc.addEncodedBase(i, 10_000L + i, initialCapacity);
+                assertEquals(i == 0, first);
+                expected.add(i);
+                expected.add(10_000L + i);
+            }
+            assertEquals(1000, acc.getCoverage());
+            assertEquals(2000, acc.getDataSize());
+            assertTrue(acc.getDataArray().length >= 2000);
+            assertEquals(expected, acc.getData());
+            assertFalse(acc.isEmpty());
+        }
+    }
+
+    @Test
+    public void getDataViewMatchesArray() {
+        Accumulator acc = new Accumulator(100);
+        assertEquals(0, acc.getData().size());
+
+        acc.addEncodedBase(1L, 2L, 80);
+        acc.addEncodedBase(3L, 4L, 80);
+        TLongList view = acc.getData();
+        assertEquals(4, view.size());
+        assertEquals(new TLongArrayList(new long[]{1L, 2L, 3L, 4L}), view);
+        assertArrayEquals(new long[]{1L, 2L, 3L, 4L}, view.toArray());
+        // capacity is larger than the size - only the valid entries should be visible
+        assertTrue(acc.getDataArray().length > view.size());
+    }
+
+    @Test
+    public void setDataCopies() {
+        Accumulator acc = new Accumulator(100);
+        TLongList list = new TLongArrayList(new long[]{1L, 2L, 3L, 4L});
+        acc.setData(list);
+        assertEquals(2, acc.getCoverage());
+        assertEquals(list, acc.getData());
+
+        // changes to the original list should not affect the accumulator
+        list.add(5L);
+        list.add(6L);
+        assertEquals(2, acc.getCoverage());
+
+        // and the accumulator can still be added to
+        acc.addEncodedBase(5L, 6L, 80);
+        assertEquals(3, acc.getCoverage());
+        assertEquals(list, acc.getData());
+
+        acc.setData(null);
+        assertEquals(0, acc.getCoverage());
+        assertNull(acc.getDataArray());
+        assertEquals(0, acc.getData().size());
+
+        // empty list - no bases, but no longer null
+        acc.setData(new TLongArrayList());
+        assertEquals(0, acc.getCoverage());
+        assertFalse(acc.isEmpty());
+        assertTrue(acc.addEncodedBase(1L, 2L, 80));		// first base, even though the data array already exists
+        assertEquals(1, acc.getCoverage());
+        assertFalse(acc.addEncodedBase(3L, 4L, 80));
+    }
+
+
+    @Test
+    public void failedFilterBasesGrowAndViewsMatch() {
+        for (int initialCapacity : new int[]{0, 1, 3, 10}) {
+            Accumulator acc = new Accumulator(100);
+            assertNull(acc.getFailedFilterACount());
+            assertNull(acc.getFailedFilterCCount());
+            assertNull(acc.getFailedFilterGCount());
+            assertNull(acc.getFailedFilterTCount());
+
+            TLongList expectedA = new TLongArrayList();
+            TLongList expectedT = new TLongArrayList();
+            for (int i = 0; i < 100; i++) {
+                assertEquals(i == 0, acc.addFailedFilterBase(Accumulator.A_BYTE, i, initialCapacity));
+                expectedA.add(i);
+                if (i % 2 == 0) {
+                    assertEquals(i == 0, acc.addFailedFilterBase(Accumulator.T_BYTE, 1000L + i, initialCapacity));
+                    expectedT.add(1000L + i);
+                }
+            }
+            // N's are ignored
+            assertFalse(acc.addFailedFilterBase((byte) 'N', 1L, initialCapacity));
+
+            assertEquals(expectedA, acc.getFailedFilterACount());
+            assertEquals(expectedT, acc.getFailedFilterTCount());
+            assertNull(acc.getFailedFilterCCount());
+            assertNull(acc.getFailedFilterGCount());
+            assertEquals("A100;T50", acc.getFailedFilterPileup());
+            assertFalse(acc.isEmpty());
+            assertEquals(0, acc.getCoverage());
+        }
     }
 
 }

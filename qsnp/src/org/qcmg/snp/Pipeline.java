@@ -41,7 +41,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -126,8 +125,18 @@ public abstract class Pipeline {
 	final List<VcfRecord> compoundSnps = new ArrayList<>(32 * 1024);
 	
 	// just used to store adjacent accumulators used by compound snp process
-	final ConcurrentMap<VcfRecord, Pair<Accumulator, Accumulator>> adjacentAccumulators = new ConcurrentHashMap<>(2 * 1024 * 1024); 
-	
+	final ConcurrentMap<VcfRecord, Pair<Accumulator, Accumulator>> adjacentAccumulators = new ConcurrentHashMap<>(2 * 1024 * 1024);
+
+	// index into snps of the first record belonging to the contig currently being processed
+	int currentContigSnpsStartIndex = 0;
+
+	/*
+	 * the Cleaner has processed and nulled all Accumulator array entries below this position (for the current contig)
+	 * read by the Consumers to limit the range of their non-null entry scan
+	 * reset to 0 by the Cleaner before it waits at the end of contig barrier
+	 */
+	volatile int cleanedUpToPosition = 0;
+
 	int[] controlStartPositions;
 	int[] testStartPositions;
 	int noOfControlFiles;
@@ -643,8 +652,11 @@ public abstract class Pipeline {
 		
 		final AtomicInteger controlMinStart = new AtomicInteger();
 		final AtomicInteger testMinStart = new AtomicInteger();
-		final Queue<SAMRecordFilterWrapper> normalSAMQueue = new ConcurrentLinkedQueue<>();
-		final Queue<SAMRecordFilterWrapper> tumourSAMQueue = new ConcurrentLinkedQueue<>();
+		/*
+		 * constant time size() - the Producers check the queue size for back pressure, and ConcurrentLinkedQueue.size() traverses the whole queue
+		 */
+		final Queue<SAMRecordFilterWrapper> normalSAMQueue = new CountingConcurrentQueue<>();
+		final Queue<SAMRecordFilterWrapper> tumourSAMQueue = new CountingConcurrentQueue<>();
 		
 		// used by Cleaner3 threads
 		Accumulator [] controlAccs = new Accumulator[1024 * 1024 * 256];
@@ -942,7 +954,25 @@ public abstract class Pipeline {
 		private final AtomicInteger minStartPosition;
 		
 		private final int maxMapSize = 100000;
-		
+
+		/*
+		 * initial capacity (in longs - 2 per base) of the Accumulator data lists created by this consumer
+		 * starts at the Accumulator default, and is then set from the average depth seen so far,
+		 * so that high coverage samples don't repeatedly grow (and copy) their lists
+		 */
+		static final int MIN_INITIAL_DATA_CAPACITY = 16;
+		static final int MAX_INITIAL_DATA_CAPACITY = 1024;
+		int initialDataCapacity = Accumulator.DEFAULT_INITIAL_DATA_CAPACITY;
+		private int loggedInitialDataCapacity = Accumulator.DEFAULT_INITIAL_DATA_CAPACITY;
+		long passedBasesAdded;
+		long positionsWithPassedBases;
+		/*
+		 * the failed filter lists use the fixed Accumulator default initial capacity rather than an adaptive one:
+		 * their sizes are very skewed (most hold 1 or 2 bases, but pile up regions can have up to MAX_FAILED_RECORDS_PER_POSITION reads),
+		 * so sizing from the mean over-allocates almost every list
+		 */
+		long failedBasesAdded;
+
 		public Consumer(final CountDownLatch consumerLatch, final CountDownLatch normalLatch, 
 				final CountDownLatch tumourLatch, final boolean isNormal, final Thread mainThread, 
 				final CyclicBarrier barrier, final  Accumulator[] array,
@@ -970,18 +1000,28 @@ public abstract class Pipeline {
 			final byte[] qualities = passesFilter ? sam.getBaseQualities() : null;
 			final Cigar cigar = sam.getCigar();
 			final long readNameHash = record.getPosition();
-			
+
+			/*
+			 * strand and read start position are the same for every base in the read, so encode them once here
+			 * if on the reverse strand, start position is actually endPosition
+			 */
+			final long readBits = AccumulatorUtils.encodeReadBits(forwardStrand, forwardStrand ? startPosition : endPosition);
+
 			int referenceOffset = 0, offset = 0;
-			
-			for (final CigarElement ce : cigar.getCigarElements()) {
+
+			/*
+			 * index based loop - iterating over getCigarElements() allocates 2 iterators per record (unmodifiable list wrapper)
+			 */
+			for (int c = 0, numElements = cigar.numCigarElements(); c < numElements; c++) {
+				final CigarElement ce = cigar.getCigarElement(c);
 				final CigarOperator co = ce.getOperator();
 				final int length = ce.getLength();
 
 				if (co.consumesReferenceBases() && co.consumesReadBases()) {
 					// we have a number (length) of bases that can be advanced.
 					updateMapWithAccums(startPosition, bases,
-							qualities, forwardStrand, offset, length, referenceOffset,
-							passesFilter, endPosition, readNameHash);
+							qualities, offset, length, referenceOffset,
+							passesFilter, endPosition, readNameHash, readBits);
 					// advance offsets
 					referenceOffset += length;
 					offset += length;
@@ -1000,18 +1040,26 @@ public abstract class Pipeline {
 		 * @param startPosition start position as reported on the forward strand (getAlignmentStart)
 		 * @param bases
 		 * @param qualities
-		 * @param forwardStrand
 		 * @param offset
 		 * @param length
 		 * @param referenceOffset
 		 * @param passesFilter
-		 * @param readStartPosition start position of the read - depends on strand as to whether this is the alignmentEnd or alignmentStart
+		 * @param readEndPosition alignment end of the read
+		 * @param readNameHash
+		 * @param readBits strand and read start position, encoded by {@link AccumulatorUtils#encodeReadBits(boolean, int)}
 		 */
 		public void updateMapWithAccums(int startPosition, final byte[] bases, final byte[] qualities,
-				boolean forwardStrand, int offset, int length, int referenceOffset, final boolean passesFilter, final int readEndPosition, long readNameHash) {
-			
+				int offset, int length, int referenceOffset, final boolean passesFilter, final int readEndPosition, long readNameHash, long readBits) {
+
 			final int startPosAndRefOffset = startPosition + referenceOffset;
-			
+			/*
+			 * positions within END_OF_READ_DISTANCE of either end of the read are flagged as being at the end of the read
+			 * (equivalent to the check in Accumulator.addBase)
+			 */
+			final int endOfReadStartLimit = startPosition + Accumulator.END_OF_READ_DISTANCE;
+			final int endOfReadEndLimit = readEndPosition - Accumulator.END_OF_READ_DISTANCE;
+			final int capacity = initialDataCapacity;
+
 			for (int i = 0 ; i < length ; i++) {
 				int currentPos = i + startPosAndRefOffset;
 				Accumulator acc = array[currentPos];
@@ -1021,14 +1069,37 @@ public abstract class Pipeline {
 				}
 				int iPlusOffset = i + offset;
 				if (passesFilter && qualities[iPlusOffset] >= minBaseQual) {
-					acc.addBase(bases[iPlusOffset], qualities[iPlusOffset], forwardStrand,
-							startPosition, currentPos, readEndPosition, readNameHash);
+					boolean endOfRead = currentPos < endOfReadStartLimit || currentPos > endOfReadEndLimit;
+					if (acc.addEncodedBase(readNameHash,
+							AccumulatorUtils.encodeBase(readBits, endOfRead, bases[iPlusOffset], qualities[iPlusOffset]), capacity)) {
+						positionsWithPassedBases++;
+					}
+					passedBasesAdded++;
 				} else {
 					acc.addFailedFilterBase(bases[iPlusOffset], readNameHash);
+					failedBasesAdded++;
 				}
 			}
 		}
 		
+		/**
+		 * Sets the initial capacity of new Accumulator data lists from the average number of bases per position seen so far,
+		 * plus 25% headroom, so that most lists don't need to grow.
+		 * Capped at {@link #MAX_INITIAL_DATA_CAPACITY} so that very deep regions don't cause excessive pre-allocation - lists will still grow as needed.
+		 */
+		void updateInitialDataCapacity() {
+			if (positionsWithPassedBases > 0) {
+				long meanDepth = passedBasesAdded / positionsWithPassedBases;
+				long capacity = 2 * (meanDepth + meanDepth / 4);	// 2 longs per base
+				initialDataCapacity = (int) Math.max(MIN_INITIAL_DATA_CAPACITY, Math.min(MAX_INITIAL_DATA_CAPACITY, capacity));
+
+				if (Math.abs(initialDataCapacity - loggedInitialDataCapacity) * 4 >= loggedInitialDataCapacity) {
+					logger.info("Consumer (isControl: " + isControl + "): mean depth: " + meanDepth + ", setting initial accumulator capacity to: " + initialDataCapacity);
+					loggedInitialDataCapacity = initialDataCapacity;
+				}
+			}
+		}
+
 		@Override
 		public void run() {
 			logger.info("In Consumer run method with isControl: " + isControl);
@@ -1041,17 +1112,26 @@ public abstract class Pipeline {
 					if (null != rec) {
 						
 						processSAMRecord(rec);
-						minStartPosition.set(rec.getRecord().getAlignmentStart());
+						/*
+						 * release store is sufficient - the Cleaner's volatile read of minStartPosition still sees all prior array writes,
+						 * and it avoids a full fence for every record
+						 */
+						minStartPosition.setRelease(rec.getRecord().getAlignmentStart());
 						
 						if (++ count > maxMapSize) {
 							count = 0;
-							
+							updateInitialDataCapacity();
+
 							/*
 							 * check to see how many non-null entries we have in the acc array
 							 * if more than our max amount - have a rest...
 							 */
 							int currentPos = minStartPosition.get();
-							int minPos = Math.max(0,currentPos - 10000000);
+							/*
+							 * the Cleaner nulls every entry below cleanedUpToPosition, so there is no need to scan below it
+							 * (this keeps the scan short when the Cleaner is keeping up, rather than always scanning 10M entries)
+							 */
+							int minPos = Math.max(Math.max(0, currentPos - 10000000), cleanedUpToPosition);
 							int nonNullPositions = 0;
 							for (int i = currentPos; i >= minPos ; i--) {
 								if (array[i] != null) {
@@ -1168,6 +1248,7 @@ public abstract class Pipeline {
 			}
 				
 			previousPosition = minStartPos;
+			cleanedUpToPosition = minStartPos;
 		}
 		
 		private void processMapsAll() {
@@ -1219,7 +1300,8 @@ public abstract class Pipeline {
 			try {
 				while (true) {
 //					logger.info("Cleaner - about to run processMaps");
-					
+
+					final int positionBeforeProcessing = previousPosition;
 					processMaps();
 //					logger.info("Cleaner - about to run processMaps - DONE, controlMinStart: " + controlMinStart.get() + ", testMinStart: " + testMinStart.get());
 						
@@ -1230,6 +1312,7 @@ public abstract class Pipeline {
 						compoundSnps(true);
 						try {
 							previousPosition = 0;
+							cleanedUpToPosition = 0;
 							barrier.await();
 							logger.info("Cleaner: no of keepers so far: " + snps.size());
 							Thread.sleep(10);	// sleep to allow initial map population
@@ -1245,6 +1328,9 @@ public abstract class Pipeline {
 						logger.info("Cleaner: consumer latch == 0 - running processMapsAll");
 						processMapsAll();
 						break;
+					} else if (previousPosition == positionBeforeProcessing) {
+						// consumers haven't moved on - back off rather than spin
+						Thread.sleep(1);
 					}
 				}
 			} catch (final Exception e) {
@@ -1437,14 +1523,21 @@ public abstract class Pipeline {
 		 * 
 		 * if not complete, don't send complete list to <code>PipelineUtil.listOfListOfAdjacentVcfs</code>
 		 */
-		if ( ! complete && snps.size() < 1000) {
+		if ( ! complete && snps.size() - currentContigSnpsStartIndex < 1000) {
 			return;
 		}
-		
-		List<List<VcfRecord>> loloSnps = PipelineUtil.listOfListOfAdjacentVcfs(complete ? snps : snps.subList(0, snps.size() - 1000));
+
+		/*
+		 * compound snps can't span contigs, so only need to look at the snps from the current contig
+		 */
+		List<VcfRecord> contigSnps = snps.subList(currentContigSnpsStartIndex, complete ? snps.size() : snps.size() - 1000);
+		List<List<VcfRecord>> loloSnps = PipelineUtil.listOfListOfAdjacentVcfs(contigSnps);
 		logger.info("Getting loloSnps [ " + loloSnps.size() + "] - DONE");
-		
+
 		if (loloSnps.isEmpty()) {
+			if (complete) {
+				finishContigCompoundSnps();
+			}
 			return;
 		}
 		
@@ -1482,10 +1575,22 @@ public abstract class Pipeline {
 		
 		if (!toRemove.isEmpty()) {
 			logger.info("About to call remove with toRemove size: " + toRemove.size());
-            snps.removeIf(toRemove::contains);
+            contigSnps.removeIf(toRemove::contains);
 			logger.info("About to call remove with toRemove size: " + toRemove.size() + " - DONE");
 		}
-		
+
+		if (complete) {
+			finishContigCompoundSnps();
+		}
 		logger.info("Created " + compoundSnps.size() + " compound snps so far");
+	}
+
+	/**
+	 * Once compound snps have been called for a contig, the accumulators for its snps are no longer needed,
+	 * and subsequent calls only need to look at snps from the next contig onwards.
+	 */
+	private void finishContigCompoundSnps() {
+		adjacentAccumulators.clear();
+		currentContigSnpsStartIndex = snps.size();
 	}
 }
