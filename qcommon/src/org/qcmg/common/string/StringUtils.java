@@ -58,21 +58,60 @@ public class StringUtils {
     }
 
 
+    /*
+     * After this many tiles have not been found in the reference, the remaining tiles are looked up in a SubStringTileIndex
+     * (provided there is at least INDEX_MIN_REMAINING_REFERENCE of the reference left to search), rather than by scanning the reference for each one.
+     */
+    static final int INDEX_AFTER_MISSES = 2;
+    static final int INDEX_MIN_REMAINING_REFERENCE = 2000;
+
+    /**
+     * Walks along the sequence a tile (13 bases) at a time, looking for each tile in the reference (from the end of the previous match onwards).
+     * When a tile is found, the match is extended as far as it goes, and the walk continues from the end of the match.
+     *
+     * @return array of [reference start position, sequence start position, length] for each block found
+     */
     public static int[][] getStartPositionsAndLengthOfSubStrings(String reference, String sequence) {
         List<int[]> results = new ArrayList<>();
         int previousRefStartPosition = 0;
-        for (int i = 0, maxLength = sequence.length() - 13; i < maxLength; i++) {
-            String nextSeqTile = sequence.substring(i, i + 13);
-            int refNextStartPosition = reference.indexOf(nextSeqTile, previousRefStartPosition);
+        int misses = 0;
+        SubStringTileIndex index = null;
+        for (int i = 0, maxLength = sequence.length() - SubStringTileIndex.TILE_LENGTH; i < maxLength; i++) {
+            int refNextStartPosition;
+            int key;
+            if (index != null && (key = SubStringTileIndex.tileKey(sequence, i)) >= 0) {
+                refNextStartPosition = index.indexOf(key, previousRefStartPosition);
+            } else {
+                refNextStartPosition = reference.indexOf(sequence.substring(i, i + SubStringTileIndex.TILE_LENGTH), previousRefStartPosition);
+            }
             if (refNextStartPosition > -1) {
-                int nextBlockLength = getLengthOfSubStringMatch(reference.substring(refNextStartPosition), sequence.substring(i));
+                int nextBlockLength = getLengthOfSubStringMatch(reference, refNextStartPosition, sequence, i);
                 results.add(new int[]{refNextStartPosition, i, nextBlockLength});
                 i += (nextBlockLength - 1);
                 previousRefStartPosition = refNextStartPosition + nextBlockLength;
+            } else if (index == null && ++misses >= INDEX_AFTER_MISSES && reference.length() - previousRefStartPosition >= INDEX_MIN_REMAINING_REFERENCE) {
+                /*
+                 * a tile that is not found means that the rest of the reference was scanned. Each sequencing error or split in the sequence
+                 * gives up to 13 such tiles, and the reference can be long, so index the remaining tiles with a single pass over the reference instead.
+                 * The previous position only ever increases, so reference positions before it are not needed.
+                 */
+                index = new SubStringTileIndex(reference, previousRefStartPosition, sequence, i + 1, maxLength);
             }
         }
 
         return results.toArray(new int[][]{});
+    }
+
+    /*
+     * Same as getLengthOfSubStringMatch(reference.substring(referenceFrom), sequence.substring(sequenceFrom)), without creating the substrings
+     */
+    static int getLengthOfSubStringMatch(String reference, int referenceFrom, String sequence, int sequenceFrom) {
+        int max = Math.min(reference.length() - referenceFrom, sequence.length() - sequenceFrom);
+        int i = 0;
+        while (i < max && reference.charAt(referenceFrom + i) == sequence.charAt(sequenceFrom + i)) {
+            i++;
+        }
+        return i;
     }
 
     public static int getLengthOfSubStringMatch(String reference, String sequence) {

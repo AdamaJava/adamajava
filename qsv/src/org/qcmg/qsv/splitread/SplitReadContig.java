@@ -16,7 +16,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.Chromosome;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
@@ -24,9 +23,11 @@ import org.qcmg.qsv.assemble.ConsensusRead;
 import org.qcmg.qsv.assemble.QSVAssemble;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+import org.qcmg.qsv.util.SamReaderCache;
 
 import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
 import gnu.trove.map.TIntObjectMap;
+import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
@@ -77,14 +78,15 @@ public class SplitReadContig {
 	public SplitReadContig(TIntObjectMap<int[]> cache, QSVParameters p,
 			String softclipDir, String leftReference, String rightReference, int leftRecordBreakpoint, int rightRecordBreakpoint, 
 			Set<String> expectedPairClassifications, String clipContig, String confidence, 
-			String orientationCategory, String referenceFile, Map<String, List<Chromosome>> chromosomes, boolean hasSoftClipEvidence, String blatFile, boolean log) throws Exception {
+			String orientationCategory, String referenceFile, Map<String, List<Chromosome>> chromosomes, boolean hasSoftClipEvidence, String blatFile, boolean log,
+			SamReaderCache readers) throws Exception {
 		
 		this(cache, p, leftReference, rightReference, leftRecordBreakpoint, rightRecordBreakpoint, orientationCategory);
 		
 		this.hasSoftClipEvidence = hasSoftClipEvidence;
 		this.confidenceLevel = confidence;
 		this.chromosomes = chromosomes;
-		getSplitReadConsensus(softclipDir, expectedPairClassifications, clipContig, blatFile, log);
+		getSplitReadConsensus(softclipDir, expectedPairClassifications, clipContig, blatFile, log, readers);
 	}
 
 	private boolean isTumour() {
@@ -228,22 +230,21 @@ public class SplitReadContig {
 		return null;
 	}
 
-	private void getSplitReadConsensus(String softclipDir, Set<String> expectedPairClassifications, String clipContig, String blatFile, boolean log) throws Exception {
+	private void getSplitReadConsensus(String softclipDir, Set<String> expectedPairClassifications, String clipContig, String blatFile, boolean log, SamReaderCache readers) throws Exception {
 		Map<String, UnmappedRead[]> map = new HashMap<>();
 		List<UnmappedRead> splitReads = new ArrayList<>();		
 
 		this.microhomology = QSVConstants.UNTESTED;
 		this.nonTemplateSequence = QSVConstants.UNTESTED;
 
-		// setup the SamReader just once
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(parameters.getInputBamFile(), "silent")) {
+		// reader is owned by the calling thread's cache and reused across clusters
+		SamReader reader = readers.get(parameters.getInputBamFile());
 
-			//left reads		
-			readSplitReads(reader, map, splitReads, knownSV.getLeftReference(), knownSV.getLeftBreakpoint(), expectedPairClassifications);
+		//left reads
+		readSplitReads(reader, map, splitReads, knownSV.getLeftReference(), knownSV.getLeftBreakpoint(), expectedPairClassifications);
 
-			//right reads
-			readSplitReads(reader, map, splitReads, knownSV.getRightReference(), knownSV.getRightBreakpoint(), expectedPairClassifications);
-		}
+		//right reads
+		readSplitReads(reader, map, splitReads, knownSV.getRightReference(), knownSV.getRightBreakpoint(), expectedPairClassifications);
 
 		//add discordant pairs		
 		int discordantPairCount = 0;
@@ -420,62 +421,63 @@ public class SplitReadContig {
 		int buffer = parameters.getUpperInsertSize() + 200;
 		int count = 0;
 		
-		SAMRecordIterator iter = reader.queryOverlapping(reference, intBreakpoint-buffer, intBreakpoint+buffer);
-
 		Set<String> readGroupIds = parameters.getReadGroupIdsAsSet();
 
-		while (iter.hasNext()) {
-			SAMRecord r = iter.next();	 
+		// iterator must be closed before the (shared) reader can be queried again
+		try (SAMRecordIterator iter = reader.queryOverlapping(reference, intBreakpoint-buffer, intBreakpoint+buffer)) {
+			while (iter.hasNext()) {
+				SAMRecord r = iter.next();	 
 
-			if ( ! r.getDuplicateReadFlag()) {
+				if ( ! r.getDuplicateReadFlag()) {
 				
-				String readGroupId = r.getReadGroup().getId();
+					String readGroupId = r.getReadGroup().getId();
 				
-				if (readGroupIds.contains(readGroupId)) {
-					if (r.getReadUnmappedFlag() || r.getCigarString().contains("S")) {
-						count++;
-						if (count > 1000) {
-							if (count > getMaxReadCount()) {
-								isPotentialRepeat = true;
-							}
-							logger.info("Greater than " + getMaxReadCount() + " records found for rescue of : " + knownSV.toString());
-							break;
-						}
-						//forward and reverse sequence
-						/*
-						 * Check that the read sequence is longer than the QSVAssemble.SEED_LENGTH
-						 * otherwise we will get exceptions later on...
-						 */
-						if (r.getReadLength() >= QSVAssemble.SEED_LENGTH) {
-							splitReads.add(new UnmappedRead(r, readGroupId, true));
-							if (r.getReadUnmappedFlag()) {
-								splitReads.add(new UnmappedRead(r, readGroupId, true, true));
-							}
-						}
-					} else {
-
-						parameters.getAnnotator().annotate(r, readGroupId);
-						String zp = (String) r.getAttribute("ZP");
-						if (expectedPairClassifications.contains(zp)) {
-
+					if (readGroupIds.contains(readGroupId)) {
+						if (r.getReadUnmappedFlag() || r.getCigar().containsOperator(CigarOperator.SOFT_CLIP)) {
+							count++;
 							if (count > 1000) {
 								if (count > getMaxReadCount()) {
 									isPotentialRepeat = true;
 								}
 								logger.info("Greater than " + getMaxReadCount() + " records found for rescue of : " + knownSV.toString());
 								break;
-							} else {
-								if (r.getReadLength() >= QSVAssemble.SEED_LENGTH) {
-									String key = r.getReadName() + ":" + readGroupId;
-									UnmappedRead[] arr = map.get(key);
+							}
+							//forward and reverse sequence
+							/*
+							 * Check that the read sequence is longer than the QSVAssemble.SEED_LENGTH
+							 * otherwise we will get exceptions later on...
+							 */
+							if (r.getReadLength() >= QSVAssemble.SEED_LENGTH) {
+								splitReads.add(new UnmappedRead(r, readGroupId, true));
+								if (r.getReadUnmappedFlag()) {
+									splitReads.add(new UnmappedRead(r, readGroupId, true, true));
+								}
+							}
+						} else {
 
-									if (null == arr) {
-										arr = new UnmappedRead[]{new UnmappedRead(r, readGroupId, true), null};
-										map.put(key, arr);
-									} else {
-										UnmappedRead newRead = new UnmappedRead(r, readGroupId, true);
-										if (newRead.getBpPos().intValue() != arr[0].getBpPos().intValue()) {
-											arr[1] = newRead;
+							parameters.getAnnotator().annotate(r, readGroupId);
+							String zp = (String) r.getAttribute("ZP");
+							if (expectedPairClassifications.contains(zp)) {
+
+								if (count > 1000) {
+									if (count > getMaxReadCount()) {
+										isPotentialRepeat = true;
+									}
+									logger.info("Greater than " + getMaxReadCount() + " records found for rescue of : " + knownSV.toString());
+									break;
+								} else {
+									if (r.getReadLength() >= QSVAssemble.SEED_LENGTH) {
+										String key = r.getReadName() + ":" + readGroupId;
+										UnmappedRead[] arr = map.get(key);
+
+										if (null == arr) {
+											arr = new UnmappedRead[]{new UnmappedRead(r, readGroupId, true), null};
+											map.put(key, arr);
+										} else {
+											UnmappedRead newRead = new UnmappedRead(r, readGroupId, true);
+											if (newRead.getBpPos().intValue() != arr[0].getBpPos().intValue()) {
+												arr[1] = newRead;
+											}
 										}
 									}
 								}
@@ -485,8 +487,6 @@ public class SplitReadContig {
 				}
 			}
 		}
-		iter.close();
-
 	}
 
 	public void parseConsensusAlign(List<BLATRecord> records) throws QSVException, IOException {

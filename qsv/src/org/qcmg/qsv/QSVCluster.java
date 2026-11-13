@@ -18,6 +18,7 @@ import org.qcmg.qsv.softclip.SoftClipCluster;
 import org.qcmg.qsv.splitread.SplitReadContig;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+import org.qcmg.qsv.util.SamReaderCache;
 
 import java.io.File;
 import java.util.*;
@@ -743,14 +744,14 @@ public class QSVCluster {
 	/*
 	 * For one-sided clips, go back to bam to see if clips at the other breakpoint can be rescues
 	 */
-	private void rescueClipping(TIntObjectMap<int[]> cache, QSVParameters p, QSVParameters n, String softClipDir, int consensusLength, int minInsertSize) throws Exception {
+	private void rescueClipping(TIntObjectMap<int[]> cache, QSVParameters p, QSVParameters n, String softClipDir, int consensusLength, int minInsertSize, SamReaderCache readers) throws Exception {
 		if (clipRecords != null) {
 			for (SoftClipCluster r: clipRecords) {
 				if ( ! r.hasMatchingBreakpoints()) {
 					if (n == null) {
-						r.rescueClips(p, cache, p.getClippedBamFile(), null, softClipDir, consensusLength, 5, minInsertSize);
+						r.rescueClips(p, cache, p.getClippedBamFile(), null, softClipDir, consensusLength, 5, minInsertSize, readers);
 					} else {
-						r.rescueClips(p, cache, p.getClippedBamFile(), n.getInputBamFile(), softClipDir, consensusLength, 5, minInsertSize);
+						r.rescueClips(p, cache, p.getClippedBamFile(), n.getInputBamFile(), softClipDir, consensusLength, 5, minInsertSize, readers);
 					}
 				}
 			}
@@ -1150,13 +1151,13 @@ public class QSVCluster {
 	 * Try to rescue clipping for any one side clip records
 	 */
 	public void rescueClippping(TIntObjectMap<int[]> cache, QSVParameters tumourParameters,	QSVParameters normalParameters, String softClipDir,
-			Integer consensusLength, Integer minInsertSize) throws Exception {
+			Integer consensusLength, Integer minInsertSize, SamReaderCache readers) throws Exception {
 		if ( ! isGermline && ! rescued) {
 			
 			//one-sided evidence or none at all
 			if (clipRecords != null) {	
 				if ( ! hasMatchingBreakpoints()) {					
-					rescueClipping(cache, tumourParameters, normalParameters, softClipDir, consensusLength, minInsertSize);
+					rescueClipping(cache, tumourParameters, normalParameters, softClipDir, consensusLength, minInsertSize, readers);
 				}
 			}
 		}		
@@ -1169,14 +1170,14 @@ public class QSVCluster {
 									  QSVParameters tumourParameters, QSVParameters normalParameters,
 									  String softClipDir,
 									  boolean isSplitRead,
-									  String reference, String blatFile) throws Exception {
-		createSplitReadContig(cache, tumourParameters,  normalParameters, softClipDir, isSplitRead, reference,  blatFile, false);
+									  String reference, String blatFile, SamReaderCache readers) throws Exception {
+		createSplitReadContig(cache, tumourParameters,  normalParameters, softClipDir, isSplitRead, reference,  blatFile, false, readers);
 	}
 		public void createSplitReadContig(TIntObjectMap<int[]> cache,
 										  QSVParameters tumourParameters, QSVParameters normalParameters,
 										  String softClipDir,
 										  boolean isSplitRead,
-										  String reference, String blatFile, boolean log) throws Exception {
+										  String reference, String blatFile, boolean log, SamReaderCache readers) throws Exception {
 		
 		if (!isGermline && !rescued) {
 			
@@ -1184,7 +1185,7 @@ public class QSVCluster {
 			    this.splitReadContig = new SplitReadContig(cache, tumourParameters, softClipDir, leftReference, rightReference,
 						getLeftBreakpoint(), getRightBreakpoint(), 
 						findExpectedPairClassifications(), getClipContigSequence(), getConfidenceLevel(), 
-						getOrientationCategory(), reference, tumourParameters.getChromosomes(), hasSoftClipEvidence(), blatFile + ".tumour.fa", log);				
+						getOrientationCategory(), reference, tumourParameters.getChromosomes(), hasSoftClipEvidence(), blatFile + ".tumour.fa", log, readers);				
 								
 				if (!potentialRepeatRegion && 
 						!getConfidenceLevel().equals(QSVConstants.LEVEL_REPEAT) &&  !getConfidenceLevel().equals(QSVConstants.LEVEL_GERMLINE) && normalParameters != null) {	
@@ -1192,7 +1193,7 @@ public class QSVCluster {
 					this.normalSplitReadContig = new SplitReadContig(cache, normalParameters, softClipDir, leftReference, rightReference,
 								getLeftBreakpoint(), getRightBreakpoint(), 
 								findExpectedPairClassifications(), getClipContigSequence(), getConfidenceLevel(), 
-								getOrientationCategory(), reference, normalParameters.getChromosomes(), hasSoftClipEvidence(), blatFile + ".normal.fa", log);
+								getOrientationCategory(), reference, normalParameters.getChromosomes(), hasSoftClipEvidence(), blatFile + ".normal.fa", log, readers);
 				}						
 			}
 		}		

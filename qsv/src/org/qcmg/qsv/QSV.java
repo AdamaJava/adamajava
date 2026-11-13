@@ -67,7 +67,11 @@ public class QSV {
 					logger = QLoggerFactory.getLogger(QSV.class, logFile, options.getLogLevel());
 					QExec exec = logger.logInitialExecutionStats("qsv", version, args, options.getUuid());
 					
-					logger.info("QSV files will be written to the directory: " + options.getOutputDirName());					
+					logger.info("QSV files will be written to the directory: " + options.getOutputDirName());
+					logger.info("translocation_threads: " + (options.getTranslocationThreads() == null ? "not set (default based on clip count)" : options.getTranslocationThreads()));
+					logger.info("main_threads: " + (options.getMainThreads() == null ? "not set (default based on clip count)" : options.getMainThreads()));
+					logger.info("define_threads: " + (options.getDefineThreads() == null ? "not set (default based on clip count)" : options.getDefineThreads()));
+					logger.info("filter_threads: " + (options.getFilterThreads() == null ? "not set (default 2 per BAM)" : options.getFilterThreads()));
 					
 					//Run the QSV pipeline
 					QSVPipeline pipeline = new QSVPipeline(options, options.getOutputDirName(), new Date(), options.getUuid(), exec);

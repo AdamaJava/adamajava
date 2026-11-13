@@ -70,7 +70,20 @@ public class SAMWriterFactory {
 
 	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output, File tmpDir, int ramReads,
 							boolean createIndex, boolean useAsyncIO, int asyncOutputBufferSize, File reference ) {
+		this(header, preSort, output, tmpDir, ramReads, createIndex, useAsyncIO, asyncOutputBufferSize, reference, -1);
+	}
+
+	/**
+	 * @param compressionLevel BGZF deflate level (0-9) for BAM output; a negative value uses the htsjdk default
+	 * (samjdk.compression_level, 5 unless overridden). Lower levels write considerably faster at the cost of
+	 * larger files, which suits intermediate BAMs.
+	 */
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output, File tmpDir, int ramReads,
+							boolean createIndex, boolean useAsyncIO, int asyncOutputBufferSize, File reference, int compressionLevel) {
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();
+		if (compressionLevel >= 0) {
+			factory.setCompressionLevel(compressionLevel);
+		}
 		if (ramReads > 0) {
 			htsjdk.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam( ramReads );
 		}

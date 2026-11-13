@@ -8,19 +8,19 @@
 package org.qcmg.qsv.softclip;
 
 import gnu.trove.map.TIntObjectMap;
+import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
-import htsjdk.samtools.ValidationStringency;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.QSVAssemble;
 import org.qcmg.qsv.splitread.SplitReadContig;
 import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+import org.qcmg.qsv.util.SamReaderCache;
 
 import java.io.File;
 import java.io.IOException;
@@ -429,7 +429,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 //        return this.name + TAB + rightBreakpoint + TAB + rightStrand + TAB + rightMateStrand + TAB + size;
 //    }
 
-    public void rescueClips(QSVParameters p, TIntObjectMap<int[]> cache, File tumourFile, File normalFile, String softclipDir, int consensusLength, int chrBuffer, Integer minInsertSize) throws Exception {
+    public void rescueClips(QSVParameters p, TIntObjectMap<int[]> cache, File tumourFile, File normalFile, String softclipDir, int consensusLength, int chrBuffer, Integer minInsertSize, SamReaderCache readers) throws Exception {
 
         Map<Integer, Breakpoint> leftMap = new HashMap<>();
         Map<Integer, Breakpoint> rightMap = new HashMap<>();
@@ -439,8 +439,8 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 
 
         if (bp != null) {
-            readRescuedClips(tumourFile, true, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
-            readRescuedClips(normalFile, false, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
+            readRescuedClips(readers.get(tumourFile), true, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
+            readRescuedClips(readers.get(normalFile), false, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
         }
         findMaxRescueBreakpoint(p, cache, leftMap, rightMap, splitReads);
     }
@@ -515,7 +515,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
         return null;
     }
 
-    private void readRescuedClips(File file, boolean isTumour, String reference, int bp, Map<Integer, Breakpoint> leftMap, Map<Integer, Breakpoint> rightMap, TreeMap<Integer,
+    private void readRescuedClips(SamReader reader, boolean isTumour, String reference, int bp, Map<Integer, Breakpoint> leftMap, Map<Integer, Breakpoint> rightMap, TreeMap<Integer,
             List<UnmappedRead>> splitReads, int consensusLength, int chrBuffer, Integer minInsertSize, Collection<String> readGroupIds, String pairingType) throws IOException {
         int bpStart = bp - chrBuffer;
         int bpEnd = bp + chrBuffer;
@@ -524,9 +524,8 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
         int referenceEnd = bpEnd + 120;
         int count = 0;
 
-        try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, null, ValidationStringency.SILENT)) {
-
-            SAMRecordIterator iter = reader.queryOverlapping(reference, referenceStart, referenceEnd);
+        // reader is shared across clusters, so the iterator must be closed (including on early break)
+        try (SAMRecordIterator iter = reader.queryOverlapping(reference, referenceStart, referenceEnd)) {
 
             while (iter.hasNext()) {
                 SAMRecord r = iter.next();
@@ -543,7 +542,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
                         reads.add(splitRead);
 
                     } else {
-                        if (!r.getDuplicateReadFlag() && r.getCigarString().contains("S")) {
+                        if (!r.getDuplicateReadFlag() && r.getCigar().containsOperator(CigarOperator.SOFT_CLIP)) {
                             count++;
                             if (count > 5000) {
                                 break;

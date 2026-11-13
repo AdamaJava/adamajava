@@ -7,8 +7,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.AbstractQueue;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -120,25 +124,27 @@ public class AnnotateFilterMTTest {
      */
     @Ignore
     public void setupQueryExecutor() throws Exception {
-    	AbstractQueue<List<Chromosome>> readQueue = null;
-		AbstractQueue<SAMRecord> writeQueue = null;
-		AbstractQueue<SAMRecord> writeClipQueue = null;
 		Thread mainThread = null;
-		CountDownLatch fLatch = null;
 		CountDownLatch wGoodLatch = null;
-		
+
 	    String[] args = new String[] {"--ini", iniFile.getAbsolutePath(), "--output-temporary",  testFolder.getRoot().toString()};
 	    Options options = new Options(args);
 	    options.parseIniFile();
         QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , "test", null);
 		AnnotateFilterMT afmt = new AnnotateFilterMT(wGoodLatch, p, null, null, options);
-		afmt.new AnnotationFiltering(readQueue, writeQueue, writeClipQueue, mainThread, fLatch, wGoodLatch);
+		afmt.new AnnotationFiltering(mainThread);
     	
     	try {
     		new QueryExecutor("and(Cigar_M > 35, option_SM > 10, MD_mismatch < 3, Flag_DuplicateRead == false)");
     	} catch (Exception e) {
     		e.printStackTrace();
     	}
+    }
+
+    @Test
+    public void totalLengthIsTheSpanRead() {
+        assertEquals(1000L, AnnotateFilterMT.totalLength(List.of(new Chromosome("chr1", 1000))));
+        assertEquals(101L + 1000L, AnnotateFilterMT.totalLength(List.of(new Chromosome("chr1", 5000, 200, 300), new Chromosome("chr1", 5000, 1001, 2000))));
     }
 
     @Test
@@ -212,6 +218,88 @@ public class AnnotateFilterMTTest {
         executorService.shutdown();
         countDownLatch.await();
 		return exit;
+	}
+
+	/*
+	 * Filtering test and control through the shared pool must give exactly the same
+	 * filtered BAM records and .clip files as filtering each BAM on its own.
+	 */
+	@Test
+	public void sharedPoolMatchesSeparateRuns() throws Exception {
+		sharedPoolMatchesSeparateRuns(null);
+	}
+
+	/*
+	 * as above, with the filter_threads option set (more threads than chromosome groups, and just 1)
+	 */
+	@Test
+	public void sharedPoolWithFilterThreadsMatchesSeparateRuns() throws Exception {
+		sharedPoolMatchesSeparateRuns(7);
+		sharedPoolMatchesSeparateRuns(1);
+	}
+
+	private void sharedPoolMatchesSeparateRuns(Integer threads) throws Exception {
+		File separateDir = testFolder.newFolder("separate" + threads);
+		File sharedDir = testFolder.newFolder("shared" + threads);
+
+		List<QSVParameters> separate = filterPair(separateDir, false, null);
+		List<QSVParameters> shared = filterPair(sharedDir, true, threads);
+
+		int pairRecords = 0;
+		for (int i = 0; i < separate.size(); i++) {
+			List<String> expectedPairs = samStrings(separate.get(i).getFilteredBamFile());
+			pairRecords += expectedPairs.size();
+			assertEquals(expectedPairs, samStrings(shared.get(i).getFilteredBamFile()));
+			assertEquals(samStrings(separate.get(i).getClippedBamFile()), samStrings(shared.get(i).getClippedBamFile()));
+		}
+		assertTrue("expected some discordant pair records", pairRecords > 0);
+
+		Map<String, String> expectedClips = clipFiles(separateDir);
+		assertTrue("expected some .clip files", expectedClips.size() > 0);
+		assertEquals(expectedClips, clipFiles(sharedDir));
+	}
+
+	private List<QSVParameters> filterPair(File dir, boolean sharedPool, Integer threads) throws Exception {
+		File tumour = TestUtil.createHiseqBamFile(new File(dir, "tumour.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
+		File normal = TestUtil.createHiseqBamFile(new File(dir, "normal.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
+		QSVParameters tp = TestUtil.getQSVParameters(dir, normal.getAbsolutePath(), tumour.getAbsolutePath(), true, "both");
+		QSVParameters np = TestUtil.getQSVParameters(dir, normal.getAbsolutePath(), tumour.getAbsolutePath(), false, "both");
+		Options options = new Options(TestUtil.getValidOptions(dir, normal.getAbsolutePath(), tumour.getAbsolutePath(), "both", "both"));
+		options.parseIniFile();
+
+		AtomicInteger exit = new AtomicInteger();
+		AnnotateFilterMT t = new AnnotateFilterMT(null, tp, exit, dir.getAbsolutePath(), options);
+		AnnotateFilterMT n = new AnnotateFilterMT(null, np, exit, dir.getAbsolutePath(), options);
+		if (sharedPool) {
+			AnnotateFilterMT.runAll(List.of(t, n), threads);
+		} else {
+			t.run();
+			n.run();
+		}
+		assertEquals(0, exit.intValue());
+		return List.of(tp, np);
+	}
+
+	private static List<String> samStrings(File bam) throws IOException {
+		List<String> records = new ArrayList<>();
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bam)) {
+			for (SAMRecord r : reader) {
+				records.add(r.getSAMString());
+			}
+		}
+		Collections.sort(records);
+		return records;
+	}
+
+	private static Map<String, String> clipFiles(File dir) throws IOException {
+		Map<String, String> contents = new TreeMap<>();
+		File[] files = dir.listFiles((d, name) -> name.endsWith(".clip"));
+		if (null != files) {
+			for (File f : files) {
+				contents.put(f.getName(), Files.readString(f.toPath()));
+			}
+		}
+		return contents;
 	}
 
 	private void assertRecordsFound(int total, File bam) throws IOException {
