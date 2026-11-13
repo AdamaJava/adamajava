@@ -440,7 +440,9 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 
         if (bp != null) {
             readRescuedClips(readers.get(tumourFile), true, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
-            readRescuedClips(readers.get(normalFile), false, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
+            if (null != normalFile) {		// null when qsv is run on a single (test) BAM
+                readRescuedClips(readers.get(normalFile), false, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
+            }
         }
         findMaxRescueBreakpoint(p, cache, leftMap, rightMap, splitReads);
     }
