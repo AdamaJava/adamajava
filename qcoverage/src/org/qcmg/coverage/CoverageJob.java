@@ -418,7 +418,8 @@ class CoverageJob implements Job {
 				}
 			}
 			logger.info("read " + recordCounterIn + " records from input for " + refName);
-			logger.info("add " + recordCounterOut + " records (satisfied by the query of at least one coverage type if a query is provided) to coverage for " + refName);
+			// the fast reader is only used when no coverage type has a query, so every record is added
+			logger.info("add " + recordCounterOut + " records (no query provided) to coverage for " + refName);
 
 			logger.info("number of bases for " + refName + " is : " + totalBaseCount);
 			logger.info("number of filtered bases for " + refName + " is : 0");
