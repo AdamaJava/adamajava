@@ -18,9 +18,11 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
+import gnu.trove.map.hash.TLongObjectHashMap;
 import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
 import htsjdk.samtools.util.SequenceUtil;
 import org.apache.commons.lang3.Range;
+import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
@@ -37,6 +39,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -116,7 +122,7 @@ public class TiledAlignerUtil {
 				
 				array[i] = list.toArray();
 				
-				logger.debug("start positions for tile: " + tile + ": " + Arrays.toString(list.toArray()));
+				if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("start positions for tile: " + tile + ": " + Arrays.toString(list.toArray()));
 			} else {
 				array[i] = null;
 			}
@@ -164,12 +170,12 @@ public class TiledAlignerUtil {
 			if (list.isEmpty()) {
 				array[i] = null;
 				if (debug) {
-					logger.debug("NO start positions for tile: " + tile);
+					if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("NO start positions for tile: " + tile);
 				}
 			} else {
 				array[i] = list.toArray();
 				if (debug) {
-					logger.debug("start positions for tile: " + tile + ": " + Arrays.toString(list.toArray()));
+					if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("start positions for tile: " + tile + ": " + Arrays.toString(list.toArray()));
 				}
 			}
 		}
@@ -189,14 +195,45 @@ public class TiledAlignerUtil {
 		/*
 		 * get number of commonly occurring tiles at beginning of 2D array 
 		 */
-		TLongIntMap positionCountMap = new TLongIntHashMap();
+		PositionCounts positionCounts = new PositionCounts();
 		int currentMaxCount = 0;
+		
+		/*
+		 * The walk (nonContinuousCount) for a tile position that sits on a diagonal (reference position - tile index) that an earlier walk
+		 * stepped through is the tail of that earlier walk, and so its count is bounded (see DiagonalWalk.bound).
+		 * If that bound is too small to be recorded (<= 5), or the alreadyRepresented check below would reject a count as big as the bound
+		 * (and so the actual count too), the walk can be skipped without changing the result.
+		 * This avoids walking each matched diagonal once per tile (O(tiles^2) binary searches).
+		 */
+		TLongObjectHashMap<DiagonalWalk> walksByDiagonal = new TLongObjectHashMap<>();
+		/*
+		 * bit filter on the diagonals in walksByDiagonal, so that most positions don't need a hash lookup
+		 */
+		long [] diagonalFilter = new long[DIAGONAL_FILTER_BITS >>> 6];
+		DiagonalWalk walk = new DiagonalWalk(array.length);
+		
+		/*
+		 * Most positions are hits elsewhere in the genome whose walk stops at once, with nothing recorded.
+		 * walkCandidates (when it returns true) marks the positions whose walk could get past its first step, found by merging sorted arrays
+		 * rather than binary searching for each position, and the rest are skipped
+		 */
+		boolean [] sorted = new boolean[array.length];
+		int maxLength = 0;
+		for (int i = 0 ; i < array.length ; i++) {
+			sorted[i] = isSorted(array[i]);
+			if (null != array[i]) {
+				maxLength = Math.max(maxLength, array[i].length);
+			}
+		}
+		boolean [] candidates = new boolean[maxLength];
 		
 		for (int i = 0 ; i < array.length - 1 ; i++) {
 			
 			long [] subArray = array[i];
 			if (null != subArray) {
-				for (long l : subArray) {
+				boolean prefiltered = walkCandidates(array, i, sorted, candidates);
+				for (int k = 0, subArrayLength = subArray.length ; k < subArrayLength ; k++) {
+					long l = subArray[k];
 					
 					/*
 					 * if long is negative, then it is a commonly occurring tile - ignore these for now
@@ -205,10 +242,39 @@ public class TiledAlignerUtil {
 						continue;
 					}
 					
+					if (prefiltered && ! candidates[k]) {
+						/*
+						 * the walk would stop at its first step with a count of 1, which is ignored below
+						 */
+						continue;
+					}
+					
+					if ( ! walksByDiagonal.isEmpty() && (diagonalFilter[diagonalFilterBit(l - i) >>> 6] & (1L << diagonalFilterBit(l - i))) != 0) {
+						DiagonalWalk previous = walksByDiagonal.get(l - i);
+						if (null != previous) {
+							int bound = previous.bound(i);
+							if (bound >= 0 && (bound <= 5 || positionCounts.represented(l, i, bound))) {
+								continue;
+							}
+						}
+					}
+					
 					/*
 					 * check the next array to see if we can find a +1 match
 					 */
-					int tally = nonContinuousCount(array, l, i + 1);
+					int tally = nonContinuousCount(array, l, i + 1, walk);
+					if (walk.hasSteps()) {
+						/*
+						 * keep the latest walk on each diagonal - any walk that stepped through a later tile gives a valid bound for it
+						 */
+						DiagonalWalk stored = walksByDiagonal.get(l - i);
+						if (null == stored) {
+							stored = new DiagonalWalk(0);
+							walksByDiagonal.put(l - i, stored);
+							diagonalFilter[diagonalFilterBit(l - i) >>> 6] |= 1L << diagonalFilterBit(l - i);
+						}
+						walk.copyTo(stored, NumberUtils.getPartOfPackedInt(tally, true));
+					}
 					if (tally > 65536) {
 						int exactMatchComponent = NumberUtils.getPartOfPackedInt(tally, true);
 						if (exactMatchComponent > currentMaxCount) {
@@ -217,16 +283,10 @@ public class TiledAlignerUtil {
 						if (exactMatchComponent > 5) {
 							
 							/*
-							 * check to see if we have already recorded this in the positionCountMap
+							 * check to see if we have already recorded this in positionCounts
 							 */
 							
-							boolean alreadyRepresented = false;
-							for (int z = 0 ; z <= i ; z++) {
-								if ( positionCountMap.get(l - z) >= exactMatchComponent + z) {
-									alreadyRepresented = true;
-									break;
-								}
-							}
+							boolean alreadyRepresented = positionCounts.represented(l, i, exactMatchComponent);
 							if ( ! alreadyRepresented) {
 								/*
 								 * add
@@ -237,7 +297,7 @@ public class TiledAlignerUtil {
 									longToUse = NumberUtils.setBit(longToUse, REVERSE_COMPLEMENT_BIT);
 								}
 								map.computeIfAbsent(tally, f -> new TLongArrayList()).add(longToUse);
-								positionCountMap.put(l, exactMatchComponent);
+								positionCounts.put(l, exactMatchComponent);
 							}
 						}
 					}
@@ -271,7 +331,7 @@ public class TiledAlignerUtil {
 		
 		TLongIntMap results = new TLongIntHashMap();
 		if (null != array && array.length > 0) {
-			logger.debug("array.length: " + array.length);
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("array.length: " + array.length);
 			
 			int lengthMinusOne = array.length - 1;
 			long [] firstArray = array[0];
@@ -322,11 +382,260 @@ public class TiledAlignerUtil {
 	 */
 	
 	
+	private static final int DIAGONAL_FILTER_BITS = 4096;
+	
+	private static int diagonalFilterBit(long diagonal) {
+		return (int) ((diagonal * 0x9E3779B97F4A7C15L) >>> 52);		// top 12 bits
+	}
+	
+	private static boolean isSorted(long [] a) {
+		if (null == a) {
+			return false;
+		}
+		for (int i = 1 ; i < a.length ; i++) {
+			if (a[i] < a[i - 1]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * For each position l in array[i], sets candidates[k] (k being the index of l in array[i]) to whether the walk from l
+	 * (nonContinuousCount(array, l, i + 1)) could get past its first array position, ie. whether:
+	 * <ul>
+	 * <li>l + 1 is in array[i + 1], or</li>
+	 * <li>the mismatch jump to array[i + 14] finds l + 14, or</li>
+	 * <li>the jump to array[i + 15] (past a commonly occurring tile at i + 14) finds l + 15</li>
+	 * </ul>
+	 * following exactly the same rules as nonContinuousCount. If none of these hold, the walk stops at once with a count of 1.
+	 * <p>
+	 * Membership is found by merging sorted arrays, which only gives the same answer as nonContinuousCount's binary search if the arrays are sorted.
+	 * Returns false (and candidates should be ignored) if any of the arrays involved are not sorted, or if the walk would not stop at its first
+	 * array position anyway (array[i + 1] is null, or a commonly occurring tile).
+	 */
+	static boolean walkCandidates(long [][] array, int i, boolean [] sorted, boolean [] candidates) {
+		int arrayLength = array.length;
+		long [] a = array[i];
+		int next = i + 1;
+		if ( ! sorted[i] || next >= arrayLength) {
+			return false;
+		}
+		long [] step = array[next];
+		if (null == step || (step.length == 1 && step[0] < 0) || ! sorted[next]) {
+			return false;
+		}
+		markContained(a, step, 1, candidates, false);
+		
+		if (next + 13 < arrayLength) {
+			long [] jump = array[next + 13];
+			if (null != jump && jump.length > 0) {
+				if (jump[0] != -1) {
+					if ( ! sorted[next + 13]) {
+						return false;
+					}
+					markContained(a, jump, 14, candidates, true);
+				} else if (jump.length == 1 && next + 14 < arrayLength) {
+					long [] jumpPastCommonTile = array[next + 14];
+					if (null != jumpPastCommonTile && jumpPastCommonTile.length > 0 && jumpPastCommonTile[0] != -1) {
+						if ( ! sorted[next + 14]) {
+							return false;
+						}
+						markContained(a, jumpPastCommonTile, 15, candidates, true);
+					}
+				}
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * For each a[k], sets (or ORs into) contained[k] whether b contains a[k] + shift. Both arrays must be sorted (ascending).
+	 * Galloping merge: each search starts from where the previous one finished, so this is fast whether b is shorter or much longer than a.
+	 */
+	static void markContained(long [] a, long [] b, long shift, boolean [] contained, boolean or) {
+		int p = 0;
+		int n = b.length;
+		for (int k = 0, len = a.length ; k < len ; k++) {
+			long v = a[k] + shift;
+			if (p < n && b[p] < v) {
+				int lo = p;
+				int stepSize = 1;
+				while (lo + stepSize < n && b[lo + stepSize] < v) {
+					lo += stepSize;
+					stepSize <<= 1;
+				}
+				// b[lo] < v, and the first value >= v is in (lo, hi]
+				int hi = Math.min(lo + stepSize, n);
+				lo++;
+				while (lo < hi) {
+					int mid = (lo + hi) >>> 1;
+					if (b[mid] < v) {
+						lo = mid + 1;
+					} else {
+						hi = mid;
+					}
+				}
+				p = lo;
+			}
+			boolean found = p < n && b[p] == v;
+			contained[k] = or ? (contained[k] || found) : found;
+		}
+	}
+	
+	/**
+	 * The reference positions recorded by convertLongDoubleArrayToMap, with their counts, kept sorted so that the alreadyRepresented check only
+	 * looks at the keys in range rather than doing a hash lookup for every possible key.
+	 */
+	static final class PositionCounts {
+		private long [] keys = new long[16];
+		private int [] values = new int[16];
+		private int size;
+		
+		/**
+		 * Same as the original check: is there a z in [0, i] for which the count at position l - z is >= count + z (a missing position counting as 0).
+		 * As count is > 0, only positions that are present can pass.
+		 */
+		boolean represented(long l, int i, int count) {
+			long from = l - i;
+			int lo = 0;
+			int hi = size;
+			while (lo < hi) {
+				int mid = (lo + hi) >>> 1;
+				if (keys[mid] < from) {
+					lo = mid + 1;
+				} else {
+					hi = mid;
+				}
+			}
+			for (int k = lo ; k < size && keys[k] <= l ; k++) {
+				if (values[k] >= count + (l - keys[k])) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		void put(long key, int value) {
+			int index = java.util.Arrays.binarySearch(keys, 0, size, key);
+			if (index >= 0) {
+				values[index] = value;
+				return;
+			}
+			index = -index - 1;
+			if (size == keys.length) {
+				keys = java.util.Arrays.copyOf(keys, size * 2);
+				values = java.util.Arrays.copyOf(values, size * 2);
+			}
+			System.arraycopy(keys, index, keys, index + 1, size - index);
+			System.arraycopy(values, index, values, index + 1, size - index);
+			keys[index] = key;
+			values[index] = value;
+			size++;
+		}
+	}
+	
+	/**
+	 * A walk along a diagonal of the tile start positions array, as made by nonContinuousCount.
+	 * <p>
+	 * For every array position the walk stepped through (found the next position on the diagonal, and moved on by 1), the tally just after that step is recorded,
+	 * as is where it stopped. A walk on the same diagonal starting from the position after one of those steps (ie. for the tile at that array position)
+	 * follows exactly the same path from there (the path depends only on the array contents and the diagonal, and both walks have no pending commonly
+	 * occurring tiles at that point), and so:
+	 * <ul>
+	 * <li>it adds the same to its tally from there on as the earlier walk did, and adds the trailing commonly occurring tiles at the end if the earlier
+	 * walk did (its tally is lower), so its count is no more than the earlier walk's count less (tally at the step - 1)</li>
+	 * <li>it stops at the same place, and each array position adds at most 1, so its count is no more than <code>stop - tile</code></li>
+	 * </ul>
+	 */
+	static final class DiagonalWalk {
+		/** tally just after stepping through each array position (from offset), 0 if not stepped */
+		private int [] tallies;
+		private int offset;
+		/** range of array positions stepped through */
+		private int first = Integer.MAX_VALUE;
+		private int last = -1;
+		/** array position at which the walk stopped (the array length if it ran to the end) */
+		int stop;
+		/** count (exact match component) of the walk - only set on copies */
+		private int count;
+		
+		DiagonalWalk(int arrayLength) {
+			tallies = new int[arrayLength];
+		}
+		
+		void reset(int arrayLength) {
+			if (tallies.length < arrayLength) {
+				tallies = new int[arrayLength];
+			} else if (last >= first) {
+				java.util.Arrays.fill(tallies, first, last + 1, 0);
+			}
+			first = Integer.MAX_VALUE;
+			last = -1;
+			stop = arrayLength;
+		}
+		
+		void step(int arrayPosition, int tally) {
+			tallies[arrayPosition] = tally;
+			if (arrayPosition < first) {
+				first = arrayPosition;
+			}
+			if (arrayPosition > last) {
+				last = arrayPosition;
+			}
+		}
+		
+		boolean hasSteps() {
+			return last >= 0;
+		}
+		
+		/**
+		 * @return an upper bound on the count of the walk for the tile at <code>arrayPosition</code> on this diagonal, or -1 if this walk did not step through it
+		 */
+		int bound(int arrayPosition) {
+			if (arrayPosition < first || arrayPosition > last) {
+				return -1;
+			}
+			int tally = tallies[arrayPosition - offset];
+			if (tally == 0) {
+				return -1;
+			}
+			return Math.min(count - (tally - 1), stop - arrayPosition);
+		}
+		
+		/**
+		 * copies the steps of this (working) walk into target, along with its count
+		 */
+		void copyTo(DiagonalWalk target, int count) {
+			int n = last - first + 1;
+			if (target.tallies.length < n) {
+				target.tallies = new int[Math.max(n, 16)];
+			}
+			System.arraycopy(tallies, first, target.tallies, 0, n);
+			target.offset = first;
+			target.first = first;
+			target.last = last;
+			target.stop = stop;
+			target.count = count;
+		}
+	}
+	
 	public static int nonContinuousCount(long [][] array, long l, int arrayStartPosition) {
+		return nonContinuousCount(array, l, arrayStartPosition, null);
+	}
+	
+	/**
+	 * As {@link #nonContinuousCount(long[][], long, int)}, also recording in <code>walk</code> (if not null) the array positions at which the next position
+	 * on the diagonal was found, and the array position at which the walk stopped.
+	 */
+	static int nonContinuousCount(long [][] array, long l, int arrayStartPosition, DiagonalWalk walk) {
 		int tally = 1;	// start at 1
 		int commonTileTally = 0;
 		int mismatchTally = 0;
 		int arrayLength = array.length;
+		if (null != walk) {
+			walk.reset(arrayLength);
+		}
 		
 		for (int i = 0 ; i < arrayLength - arrayStartPosition ; i++) {
 			long [] nextArray = array[arrayStartPosition + i];
@@ -349,6 +658,9 @@ public class TiledAlignerUtil {
 						if (commonTileTally > 0) {
 							tally += commonTileTally;
 							commonTileTally = 0;
+						}
+						if (null != walk) {
+							walk.step(arrayStartPosition + i, tally);
 						}
 					} else {
 						
@@ -397,6 +709,9 @@ public class TiledAlignerUtil {
 						 * 
 						 * and so, if we don't have a match, or a commonly occurring tile, break out
 						 */
+						if (null != walk) {
+							walk.stop = arrayStartPosition + i;
+						}
 						break;
 					}
 				}
@@ -507,12 +822,12 @@ public class TiledAlignerUtil {
 			} else if (strictPassesTest) {
 				return diffsStrict;
 			} else {
-				logger.debug("sw diffs did not pass the mismatch (" + scoresLenient[1] + " and allowed up to " + maxMisMatchCount + "), or block (" + maxBlockCount + "), cutoff requirements");
+				if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("sw diffs did not pass the mismatch (" + scoresLenient[1] + " and allowed up to " + maxMisMatchCount + "), or block (" + maxBlockCount + "), cutoff requirements");
 				for (String s : diffsLenient) {
-					logger.debug("diffsLenient: " + s);
+					if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("diffsLenient: " + s);
 				}
 				for (String s : diffsStrict) {
-					logger.debug("diffsStrict: " + s);
+					if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("diffsStrict: " + s);
 				}
 				return new String[]{};
 			}
@@ -731,6 +1046,15 @@ public class TiledAlignerUtil {
 	}
 	
 	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, Map<ChrPosition, LongRange> refIndexMap, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
+		return runTiledAlignerCache(refFile, refIndexMap, cache, sequencesNameMap, tileLength, originatingMethod, log, recordsMustComeFromChrInName, 1);
+	}
+	
+	/**
+	 * As {@link #runTiledAlignerCache(String, Map, TIntObjectMap, Map, int, String, boolean, boolean)}, but aligns the sequences using up to the supplied number of threads.
+	 * Each sequence is aligned independently, so the results are the same regardless of the number of threads.
+	 * The returned map is populated in the iteration order of sequencesNameMap, as it is when running single threaded.
+	 */
+	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, Map<ChrPosition, LongRange> refIndexMap, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName, int threads) {
 		
 		/*
 		 * check sequenceNameMap
@@ -740,32 +1064,71 @@ public class TiledAlignerUtil {
 		}
 		
 		Map<String, List<BLATRecord>> results = new HashMap<>();
+		int poolSize = Math.min(threads, sequencesNameMap.size());
 		
-		for (Entry<String, String> entry : sequencesNameMap.entrySet()) {
-			if (log) {
-				logger.info("about to call getBlatRecords for " + entry.getKey());
+		if (poolSize <= 1) {
+			for (Entry<String, String> entry : sequencesNameMap.entrySet()) {
+				results.put(entry.getKey(), alignSequence(refFile, refIndexMap, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName));
 			}
-			String name = entry.getValue();
-			if (null != name && name.contains(":")) {
-				logger.info("got more than 1 name for sequence. names: " + name + ", will use first one to dictate sw strategy");
-				String [] names = entry.getValue().split(":");
-				name = names[0];
+			return results;
+		}
+		
+		ExecutorService executor = Executors.newFixedThreadPool(poolSize, r -> {
+			Thread t = new Thread(r, "tiledAligner-" + Thread.currentThread().getName());
+			t.setDaemon(true);
+			return t;
+		});
+		try {
+			List<Entry<String, String>> entries = new ArrayList<>(sequencesNameMap.entrySet());
+			List<Future<List<BLATRecord>>> futures = new ArrayList<>(entries.size());
+			for (Entry<String, String> entry : entries) {
+				futures.add(executor.submit(() -> alignSequence(refFile, refIndexMap, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName)));
 			}
-			logger.info("in runTiledAlignerCache, name: " + name + ", seq: " + entry.getKey());
-			
-			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, refIndexMap, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
-			blatties.sort(null);
-			/*
-			 * populate the name field on the BLATRecord with the value, if present - otherwise just leave as the default
-			 */
-			if (null != entry.getValue()) {
-				for (BLATRecord b : blatties) {
-					b.setQName(entry.getValue());
-				}
+			for (int i = 0 ; i < entries.size() ; i++) {
+				results.put(entries.get(i).getKey(), futures.get(i).get());
 			}
-			results.put(entry.getKey(), blatties);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("Interrupted whilst running tiled aligner", e);
+		} catch (ExecutionException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof RuntimeException re) {
+				throw re;
+			} else if (cause instanceof Error err) {
+				throw err;
+			}
+			throw new IllegalStateException(cause);
+		} finally {
+			executor.shutdownNow();
 		}
 		return results;
+	}
+	
+	private static List<BLATRecord> alignSequence(String refFile, Map<ChrPosition, LongRange> refIndexMap, TIntObjectMap<int[]> cache, String sequence, String sequenceName, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
+		if (log) {
+			logger.info("about to call getBlatRecords for " + sequence);
+		}
+		String name = sequenceName;
+		if (null != name && name.contains(":")) {
+			logger.info("got more than 1 name for sequence. names: " + name + ", will use first one to dictate sw strategy");
+			String [] names = sequenceName.split(":");
+			name = names[0];
+		}
+		if (logger.isLevelEnabled(QLevel.DEBUG)) {
+			logger.debug("in runTiledAlignerCache, name: " + name + ", seq: " + sequence);
+		}
+		
+		List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, refIndexMap, cache, sequence, sequenceName, tileLength, originatingMethod, log, recordsMustComeFromChrInName);
+		blatties.sort(null);
+		/*
+		 * populate the name field on the BLATRecord with the value, if present - otherwise just leave as the default
+		 */
+		if (null != sequenceName) {
+			for (BLATRecord b : blatties) {
+				b.setQName(sequenceName);
+			}
+		}
+		return blatties;
 	}
 	
 	public static Map<String, List<BLATRecord>> runTiledAlignerCacheSWAll(String refFile, TIntObjectMap<int[]> cache,
@@ -811,7 +1174,9 @@ public class TiledAlignerUtil {
 				String [] names = entry.getValue().split(":");
 				name = names[0];
 			}
-			logger.info("in runTiledAlignerCache, name: " + name + ", seq: " + entry.getKey());
+			if (logger.isLevelEnabled(QLevel.DEBUG)) {
+				logger.debug("in runTiledAlignerCache, name: " + name + ", seq: " + entry.getKey());
+			}
 			
 			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, refIndexMap, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
 			/*
@@ -863,7 +1228,7 @@ public class TiledAlignerUtil {
 		}
 		
 		if ( ! doesSequenceHaveMostlySingleBaseRepeats(sequence)) {
-			logger.warn("too much repetition in sequence to proceed: " + sequence);
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("too much repetition in sequence to proceed: " + sequence);
 			return Collections.emptyList();
 		}
 		int seqLength = sequence.length();
@@ -879,15 +1244,15 @@ public class TiledAlignerUtil {
 		int commonTileCountAtStart = NumberUtils.getContinuousCountFromValue(0, allCommonTiles);
 		int commonTileCountAtStartRC = NumberUtils.getContinuousCountFromValue(0, allCommonTilesRC);
 		if (commonTileCountAtStart > 0 || commonTileCountAtStartRC > 0) {
-			logger.debug("commonTileCountAtStart: " + commonTileCountAtStart + " (total: " + allCommonTiles.length + "), commonTileCountAtStartRC: " + commonTileCountAtStartRC + " (total: " + allCommonTilesRC.length + ")");
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("commonTileCountAtStart: " + commonTileCountAtStart + " (total: " + allCommonTiles.length + "), commonTileCountAtStartRC: " + commonTileCountAtStartRC + " (total: " + allCommonTilesRC.length + ")");
 		}
 		
 		
 		if (null != allCommonTiles && allCommonTiles.length > 0) {
-			logger.debug("common tile positions: " + Arrays.stream(allCommonTiles).mapToObj(i -> "" + i).collect(Collectors.joining(",")));
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("common tile positions: " + Arrays.stream(allCommonTiles).mapToObj(i -> "" + i).collect(Collectors.joining(",")));
 		}
 		if (null != allCommonTilesRC && allCommonTilesRC.length > 0) {
-			logger.debug("RS common tile positions: " + Arrays.stream(allCommonTilesRC).mapToObj(i -> "" + i).collect(Collectors.joining(",")));
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("RS common tile positions: " + Arrays.stream(allCommonTilesRC).mapToObj(i -> "" + i).collect(Collectors.joining(",")));
 		}
 		
 		TLongIntMap potentialMatches = getShortCutPositionsForSmithwaterman(startPositions);
@@ -922,7 +1287,7 @@ public class TiledAlignerUtil {
 				map1 = updatedMap;
 			}
 			
-			logger.info("we have " + acceptableRanges.size() + " ranges for this name: " + name + ", updated map size: " + updatedMap.size() + ", going with map of size: " + map1.size());
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("we have " + acceptableRanges.size() + " ranges for this name: " + name + ", updated map size: " + updatedMap.size() + ", going with map of size: " + map1.size());
 		}
 		
 		if (log) {
@@ -988,12 +1353,12 @@ public class TiledAlignerUtil {
 							String ref =  ReferenceUtil.getRefFromChrStartStop(refFile, cp.getChromosome(), cp.getStartPosition() - buffer, cp.getStartPosition() + sequence.length() + buffer);
 							Optional<ChrPosition> optionalCP = getChrPositionWithReference(cp.getChromosome(), cp.getStartPosition(), forwardStrand ? sequence : revCompSequence, ref);
 							if (optionalCP.isPresent()) {
-								logger.debug("got a perfect match!  cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
+								if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("got a perfect match!  cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
 								needToRunSW = false;
 								Optional<BLATRecord> oBR = BLATRecordUtil.getDetailsForBLATRecord(List.of(optionalCP.get()), name, forwardStrand ? sequence : revCompSequence, forwardStrand);
 								oBR.ifPresent(results::add);
 							} else {
-								logger.debug("got perfect match on tiles, but not on sequence! cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
+								if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("got perfect match on tiles, but not on sequence! cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
 							}
 						}
 					}
@@ -1017,7 +1382,7 @@ public class TiledAlignerUtil {
 			boolean finalIteration = false;
 			int iterationCount = 0;
 			
-			logger.debug("seqLength: " + seqLength + ",  splits: " + splits + ", totalNumberOfTiledPositions: " + totalNumberOfTiledPositions + ", shortcut positions: " + potentialMatches.size() + ", shortcut positions RC: " + potentialMatchesRC.size());
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("seqLength: " + seqLength + ",  splits: " + splits + ", totalNumberOfTiledPositions: " + totalNumberOfTiledPositions + ", shortcut positions: " + potentialMatches.size() + ", shortcut positions RC: " + potentialMatchesRC.size());
 			
 			/*
 			 * look at shortcut positions first
@@ -1026,7 +1391,7 @@ public class TiledAlignerUtil {
 				for (long l : potentialMatches.keys()) {
 					BLATRecord br = smithWaterman(l, seqLength, seqLength, name, sequence, revCompSequence,  refFile, allCommonTiles, refIndexMap, false);
 					if (null != br) {
-						logger.debug("found record from shortcut: " + br);
+						if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("found record from shortcut: " + br);
 						results.add(br);
 					}
 				}
@@ -1035,7 +1400,7 @@ public class TiledAlignerUtil {
 				 * quick check to see if we can find a shortcut with buffer
 				 */
 				TLongIntMap splitReadShortCuts = getShortCutPositionsForSmithwaterman(startPositions, 500000);
-				logger.debug("Have " + splitReadShortCuts.size() + " potential split read shortcuts available!");
+				if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("Have " + splitReadShortCuts.size() + " potential split read shortcuts available!");
 				
 				
 				for (long l : splitReadShortCuts.keys()) {
@@ -1054,7 +1419,7 @@ public class TiledAlignerUtil {
 						
 						BLATRecord br =  investigateSplitShortCut(l, splitReadShortCuts.get(l), name, sequence, revCompSequence, refFile, allCommonTiles, refIndexMap, false);
 						if (null != br) {
-							logger.debug("found record from split read shortcut: " + br);
+							if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("found record from split read shortcut: " + br);
 							results.add(br);
 						}
 					}
@@ -1064,7 +1429,7 @@ public class TiledAlignerUtil {
 				for (long l : potentialMatchesRC.keys()) {
 					BLATRecord br = smithWaterman(l, seqLength, seqLength, name, sequence, revCompSequence, refFile, allCommonTilesRC, refIndexMap, true);
 					if (null != br) {
-						logger.debug("found record from shortcutRC: " + br);
+						if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("found record from shortcutRC: " + br);
 						results.add(br);
 					}
 				}
@@ -1073,7 +1438,7 @@ public class TiledAlignerUtil {
 				 * quick check to see if we can find a shortcut with buffer
 				 */
 				TLongIntMap splitReadShortCuts = getShortCutPositionsForSmithwaterman(startPositionsRC, 500000);
-				logger.debug("Have " + splitReadShortCuts.size() + "RC, split read shortcuts available!");
+				if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("Have " + splitReadShortCuts.size() + "RC, split read shortcuts available!");
 
 				for (long l : splitReadShortCuts.keys()) {
 					
@@ -1092,13 +1457,13 @@ public class TiledAlignerUtil {
 					if (goodToGo) {
 						BLATRecord br =  investigateSplitShortCut(l, splitReadShortCuts.get(l), name, sequence, revCompSequence, refFile, allCommonTilesRC, refIndexMap, true);
 						if (null != br) {
-							logger.debug("found record from split read shortcutRC: " + br);
+							if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("found record from split read shortcutRC: " + br);
 							results.add(br);
 						}
 					}
 				}
 			}
-			logger.debug("after shortcut mode, results is following size: " + results.size());
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("after shortcut mode, results is following size: " + results.size());
 			
 			
 			boolean runSW = true;
@@ -1109,7 +1474,7 @@ public class TiledAlignerUtil {
 			List<BLATRecord> splitsList = new ArrayList<>();
 			if (results.isEmpty() || results.getLast().getScore() < passingScore99) {
 				
-				logger.debug("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist());
+				if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist());
 				TIntObjectMap<Set<IntLongPairs>> splitsMap = TARecordUtil.getSplitStartPositions(taRec);
 				List<IntLongPairs> potentialSplits = new ArrayList<>();
 				splitsMap.forEachValue(s -> potentialSplits.addAll(s.stream().toList()));
@@ -1123,16 +1488,16 @@ public class TiledAlignerUtil {
 						.map(Optional::get)
 						//				.filter(br -> br.getScore() > passingScore)
 						.toList());
-				logger.debug("after splits mode, splitsList is following size: " + splitsList.size());
+				if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("after splits mode, splitsList is following size: " + splitsList.size());
 				splitsList.sort(null);
 				
 				if ( ! splitsList.isEmpty() && splitsList.getLast().getScore() >= passingScore99) {
-					logger.debug("top score from splits: " + splitsList.getLast().getScore() + ", no need to run sw!");
+					if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("top score from splits: " + splitsList.getLast().getScore() + ", no need to run sw!");
 					runSW = false;
 					results.addAll(splitsList);
 				} else {
 					if ( ! splitsList.isEmpty()) {
-						logger.debug("top score from splits: " + splitsList.getLast().getScore() + ", will run sw!");
+						if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("top score from splits: " + splitsList.getLast().getScore() + ", will run sw!");
 					}
 				}
 			}
@@ -1145,14 +1510,14 @@ public class TiledAlignerUtil {
 				
 				for (Integer i : sortedKeys) {
 					
-					logger.debug("Looping through sortedKeys, i: " + i);
+					if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("Looping through sortedKeys, i: " + i);
 					
 					if (limitReached) {
 						/*
 						 * need to break out of this look once we are in the weeds.
 						 * Definition of weeds is currently less than half the max value
 						 */
-						logger.debug("limitReached is true, swCount: " + swCount + ", results.size(): " + results.size());
+						if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("limitReached is true, swCount: " + swCount + ", results.size(): " + results.size());
 						break;
 					}
 					
@@ -1190,7 +1555,7 @@ public class TiledAlignerUtil {
 							br = getRecordFromTileCountAndMismatches(l, length, mismatchCount, seqLength, name, sequence, revCompSequence, refIndexMap);
 						}
 						if (null != br) {
-							logger.debug("created br: " + br);
+							if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("created br: " + br);
 							if (br.getScore() > thisIterationMaxScore) {
 								thisIterationMaxScore = br.getScore();
 							}
@@ -1256,9 +1621,9 @@ public class TiledAlignerUtil {
 						int [] [] missingRanges = NumberUtils.getRemainingRanges(seqLength, new int[][] {new int[] {largestSplitBR.getQueryStart(),largestSplitBR.getQueryEnd() }}, 10);
 						
 						if (missingRanges.length > 0) {
-							logger.debug("missing ranges: " + Arrays.deepToString(missingRanges));
+							if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("missing ranges: " + Arrays.deepToString(missingRanges));
 							for (int [] missingRange : missingRanges) {
-								logger.debug("missing ranges: " + Arrays.deepToString(missingRanges));
+								if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("missing ranges: " + Arrays.deepToString(missingRanges));
 								
 								
 								Optional<BLATRecord> optionalBR = BLATRecordUtil.findRecordInRange(results, missingRange[0], missingRange[1]);
@@ -1277,10 +1642,10 @@ public class TiledAlignerUtil {
 						if ( ! splitsResults.isEmpty()) {
 							splitsResults.sort(null);
 							boolean returnSplits = true;
-							logger.debug("will look for a possible merged rec with splitResults: " + splitsResults.stream().map(BLATRecord::toString).collect(Collectors.joining(",")));
+							if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("will look for a possible merged rec with splitResults: " + splitsResults.stream().map(BLATRecord::toString).collect(Collectors.joining(",")));
 								Optional<BLATRecord> mergedRec = BLATRecordUtil.mergeBLATRecs(splitsResults, org.apache.commons.lang3.StringUtils.countMatches(sequence, 'N'));
 								if (mergedRec.isPresent()) {
-									logger.debug("merged rec is present!!!: " + mergedRec.get());
+									if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("merged rec is present!!!: " + mergedRec.get());
 									results.add(mergedRec.get());
 									returnSplits = false;
 								}
@@ -1289,7 +1654,7 @@ public class TiledAlignerUtil {
 								if (coverageAndOverlapO.isPresent()) {
 									int [] coverageAndOverlap = coverageAndOverlapO.get();
 									if (coverageAndOverlap[0] > passingScore && coverageAndOverlap[0] > (coverageAndOverlap[1] * 2)) {
-										logger.info("Returning splits results, coverageAndOverlap[0] > passingScore && coverageAndOverlap[0] > (coverageAndOverlap[1] * 2)");
+										if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("Returning splits results, coverageAndOverlap[0] > passingScore && coverageAndOverlap[0] > (coverageAndOverlap[1] * 2)");
 										return splitsResults;
 									}
 								}
@@ -1304,7 +1669,7 @@ public class TiledAlignerUtil {
 					results.sort(null);
 					int topOtherRecordsScore =  results.getLast().getScore();
 					if (topSplitsScore > topOtherRecordsScore) {
-						logger.debug("adding splitList entries to results");
+						if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("adding splitList entries to results");
 						results.addAll(splitsList);
 					}
 				}
@@ -1317,7 +1682,7 @@ public class TiledAlignerUtil {
 		List<BLATRecord> uniqueResults = results.stream().distinct().sorted().collect(Collectors.toList());
 
         if (log) {
-			logger.debug("number of blat records for seq: " + sequence +", " + uniqueResults.size() +", winner: " + (!uniqueResults.isEmpty() ? uniqueResults.getLast().toString() : "-"));
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("number of blat records for seq: " + sequence +", " + uniqueResults.size() +", winner: " + (!uniqueResults.isEmpty() ? uniqueResults.getLast().toString() : "-"));
 		}
 		
 		if (null != name && name.contains("splitcon")) {
@@ -1326,9 +1691,9 @@ public class TiledAlignerUtil {
 			 */
 			String [] nameArray = splitString(name);
 			if (nameArray.length > 4 &&  ! nameArray[1].equals(nameArray[3])) {
-				logger.debug("got a splitcon: " + name + " with no of recs: " + uniqueResults.size() + ", taRec: " + taRec);
+				if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("got a splitcon: " + name + " with no of recs: " + uniqueResults.size() + ", taRec: " + taRec);
 				for (BLATRecord br : uniqueResults) {
-					logger.debug("splitcon rec: " + br);
+					if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("splitcon rec: " + br);
 				}
 			}
 		}
@@ -1338,7 +1703,9 @@ public class TiledAlignerUtil {
 		 */
 		List<BLATRecord> nonOverlappingRecs = BLATRecordUtil.removeOverlappingRecords(uniqueResults);
 		nonOverlappingRecs.sort(null);
-		logger.info("Removed overlapping records. Previous count: " + uniqueResults.size() + ", new count (nonOverlappingRecs size): " + nonOverlappingRecs.size() + " top record: " + (!nonOverlappingRecs.isEmpty() ? nonOverlappingRecs.getLast().toString() : null));
+		if (logger.isLevelEnabled(QLevel.DEBUG)) {
+			logger.debug("Removed overlapping records. Previous count: " + uniqueResults.size() + ", new count (nonOverlappingRecs size): " + nonOverlappingRecs.size() + " top record: " + (!nonOverlappingRecs.isEmpty() ? nonOverlappingRecs.getLast().toString() : null));
+		}
 		
 		return nonOverlappingRecs;
 	}
@@ -1375,7 +1742,7 @@ public class TiledAlignerUtil {
 		int endCommonTileCount = NumberUtils.getContinuousCountFromValue(startPositionInSequence + length, allCommonTiles);
 		boolean preferStrictSW = name != null && name.startsWith("splitcon");
 		
-		logger.debug("details so far... seqLength: " + seqLength + ", startPositionInSequence: " + startPositionInSequence + ", length: " + length + ", revComp: " + reverseComplement + ", startCommonTileCount: " + startCommonTileCount + ", endCommonTileCount: " + endCommonTileCount);
+		if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("details so far... seqLength: " + seqLength + ", startPositionInSequence: " + startPositionInSequence + ", length: " + length + ", revComp: " + reverseComplement + ", startCommonTileCount: " + startCommonTileCount + ", endCommonTileCount: " + endCommonTileCount);
 		
 		
 		int[] buffersToUse = BLATRecordUtil.getBuffers(seqLength, startPositionInSequence, startPositionInSequence + length, preferStrictSW, allCommonTiles, 60, 5);
@@ -1393,7 +1760,7 @@ public class TiledAlignerUtil {
 		BLATRecord br = null;
 			
 		if (index > -1) {
-			logger.debug("Got a perfect match using indexOf!!! " + bufferedCP.getChromosome() + ":" + (bufferedCP.getStartPosition()));
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("Got a perfect match using indexOf!!! " + bufferedCP.getChromosome() + ":" + (bufferedCP.getStartPosition()));
 			/*
 			 * create matching swdiffs array
 			 */
@@ -1404,7 +1771,7 @@ public class TiledAlignerUtil {
 			br = BLATRecordUtil.getBLATRecord(bufferedCP, swMatches, name, sequence, ! reverseComplement, bufferedReference);
 		} else {
 				
-			logger.debug("about to sw ref: " + bufferedReference + ", fragString: " + fragString + " for cp: " + bufferedCP.getChromosome() + ":" +  (bufferedCP.getStartPosition()));
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("about to sw ref: " + bufferedReference + ", fragString: " + fragString + " for cp: " + bufferedCP.getChromosome() + ":" +  (bufferedCP.getStartPosition()));
 			/*
 			 * this method will only return a populated string array if valid results have been found (ie. passed the filters)
 			 * and so can add directly to collection
@@ -1432,13 +1799,13 @@ public class TiledAlignerUtil {
 		/*
 		 * lets see what our home grown method gives us
 		 */
-		logger.debug("about to call StringUtils.getStartPositionsAndLengthOfSubStrings with bufferedReference: " + (bufferedReference.length() > 1000 ? ("[too_long: " + bufferedReference.length() + " bases]") :  bufferedReference) + ", and fragString: " + fragString);
+		if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("about to call StringUtils.getStartPositionsAndLengthOfSubStrings with bufferedReference: " + (bufferedReference.length() > 1000 ? ("[too_long: " + bufferedReference.length() + " bases]") :  bufferedReference) + ", and fragString: " + fragString);
 		int[][] startPositionsAndLengths = StringUtils.getStartPositionsAndLengthOfSubStrings(bufferedReference, fragString);
 		int splitsLengthTally = 0;
 		for (int [] array : startPositionsAndLengths) {
 			splitsLengthTally += array[2];
 		}
-		logger.debug("name: " + name + ", splits length: " + length + ", seqLength: + " + sequence.length() + ", number of blocks: " + startPositionsAndLengths.length + ", tally: " + splitsLengthTally);
+		if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("name: " + name + ", splits length: " + length + ", seqLength: + " + sequence.length() + ", number of blocks: " + startPositionsAndLengths.length + ", tally: " + splitsLengthTally);
 
         return BLATRecordUtil.getRecordFromStartPositionsAndLengths(bufferedCP, startPositionsAndLengths, name, sequence, ! reverseComplement);
 	}
@@ -1450,7 +1817,7 @@ public class TiledAlignerUtil {
 		 */
 		if ((length - mismatchCount) > MINIMUM_BLAT_RECORD_SCORE) {
 			
-			logger.debug("SW couldn't put this down whilst passing the filters - will attempt to create based on tile counts alone. l: " + l + ", length: " + length + ", mismatchCount: " + mismatchCount);
+			if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("SW couldn't put this down whilst passing the filters - will attempt to create based on tile counts alone. l: " + l + ", length: " + length + ", mismatchCount: " + mismatchCount);
 			
 			ChrPosition cp = PositionChrPositionMap.getChrPositionFromLongPosition(l, refIndexMap);
 			boolean forwardStrand = "F".equals(cp.getName());
@@ -1485,7 +1852,7 @@ public class TiledAlignerUtil {
 						tally++;
 					}
 				}
-				logger.debug("added " + tally + " positions to perfect matches list, rc: " + rc);
+				if (logger.isLevelEnabled(QLevel.DEBUG)) logger.debug("added " + tally + " positions to perfect matches list, rc: " + rc);
 			}
 		}
 	}

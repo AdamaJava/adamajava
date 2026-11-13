@@ -504,46 +504,30 @@ public class DiscordantPairCluster {
 	 private void readAndAnnotateRecords(QSVParameters findParameters, QSVParameters compareParameters, Map<String, SAMRecord[]> map, String ref, int start,
 			 int end, Annotator annotator, File bamFile) throws Exception {
 		 
-		 SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, null, ValidationStringency.SILENT);
-		 SAMRecordIterator iter = reader.queryOverlapping(ref, start-200, end+200);
+		 try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, null, ValidationStringency.SILENT);
+			  SAMRecordIterator iter = reader.queryOverlapping(ref, start-200, end+200)) {
 
-		 String zp1;
-		 String zp2 = null;
-		 if (zp.contains("_")) {
-			 zp1 = zp.split("_")[0];
-			 zp2 = zp.split("_")[1];
-		 } else {
-			 zp1 = zp;
-		 }
-		 Set<String> readGroupIds = compareParameters.getReadGroupIdsAsSet();
+			 String zp1;
+			 String zp2 = null;
+			 if (zp.contains("_")) {
+				 zp1 = zp.split("_")[0];
+				 zp2 = zp.split("_")[1];
+			 } else {
+				 zp1 = zp;
+			 }
+			 Set<String> readGroupIds = compareParameters.getReadGroupIdsAsSet();
 
-		 while (iter.hasNext()) {
-			 SAMRecord r = iter.next();
-			 String readGroupId = r.getReadGroup().getId();
+			 while (iter.hasNext()) {
+				 SAMRecord r = iter.next();
+				 String readGroupId = r.getReadGroup().getId();
 
-			 if (readGroupIds.contains(readGroupId)) {
+				 if (readGroupIds.contains(readGroupId)) {
 
-				 annotator.annotate(r, readGroupId);
-
-				 if (passesZPFilter((String) r.getAttribute(QSVConstants.ZP_SHORT), zp1, zp2)) {
-					 String key = "normal" + r.getReadName() + ":" + readGroupId;
-					 
-					 SAMRecord[] arr = map.get(key);
-					 if (null == arr) {
-						 map.put(key, new SAMRecord[]{r, null});
-					 } else {
-						 if ( ! r.equals(arr[0])) {
-							 arr[1] = r;
-						 }
-					 }
-				 } else {
-					 annotator.annotateByTumorISize(findParameters.getLowerInsertSize(), findParameters.getUpperInsertSize(), r);
+					 annotator.annotate(r, readGroupId);
 
 					 if (passesZPFilter((String) r.getAttribute(QSVConstants.ZP_SHORT), zp1, zp2)) {
-
-						 String key = "tumour" + r.getReadName() + ":" + readGroupId;
-						 
-						 
+						 String key = "normal" + r.getReadName() + ":" + readGroupId;
+					 
 						 SAMRecord[] arr = map.get(key);
 						 if (null == arr) {
 							 map.put(key, new SAMRecord[]{r, null});
@@ -552,11 +536,27 @@ public class DiscordantPairCluster {
 								 arr[1] = r;
 							 }
 						 }
+					 } else {
+						 annotator.annotateByTumorISize(findParameters.getLowerInsertSize(), findParameters.getUpperInsertSize(), r);
+
+						 if (passesZPFilter((String) r.getAttribute(QSVConstants.ZP_SHORT), zp1, zp2)) {
+
+							 String key = "tumour" + r.getReadName() + ":" + readGroupId;
+						 
+						 
+							 SAMRecord[] arr = map.get(key);
+							 if (null == arr) {
+								 map.put(key, new SAMRecord[]{r, null});
+							 } else {
+								 if ( ! r.equals(arr[0])) {
+									 arr[1] = r;
+								 }
+							 }
+						 }
 					 }
 				 }
-			 }
-		 }        
-		 reader.close();		
+			 }        
+		 }
 	 }
 
 	 private boolean passesZPFilter(String currentZP, String zp1, String zp2) {

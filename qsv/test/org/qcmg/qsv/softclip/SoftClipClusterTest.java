@@ -5,12 +5,22 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import gnu.trove.map.hash.TIntObjectHashMap;
+import htsjdk.samtools.SamReader;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.easymock.EasyMock;
+import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.util.QSVUtil;
+import org.qcmg.qsv.util.SamReaderCache;
 import org.qcmg.qsv.util.TestUtil;
 
 public class SoftClipClusterTest {
@@ -263,4 +273,47 @@ public class SoftClipClusterTest {
 		return b;
 	}
 
+
+	private static final File TEST_BAM = new File("src/resources/example.test.bam");
+	private static final File CONTROL_BAM = new File("src/resources/example.control.bam");
+
+	/**
+	 * Records the files that readers were asked for
+	 */
+	private static final class RecordingReaderCache extends SamReaderCache {
+		final List<File> requested = new ArrayList<>();
+
+		@Override
+		public SamReader get(File bam) throws IOException {
+			requested.add(bam);
+			return super.get(bam);
+		}
+	}
+
+	private static QSVParameters rescueParameters() {
+		QSVParameters p = EasyMock.createNiceMock(QSVParameters.class);
+		EasyMock.expect(p.getReadGroupIds()).andReturn(new HashSet<>()).anyTimes();
+		EasyMock.expect(p.getPairingType()).andReturn("pe").anyTimes();
+		EasyMock.expect(p.getUpperInsertSize()).andReturn(500).anyTimes();
+		EasyMock.replay(p);
+		return p;
+	}
+
+	@Test
+	public void rescueClipsWithoutNormalBamOnlyReadsTumour() throws Exception {
+		clip = TestUtil.setUpClipRecord("chr10", "chr10", false, true);
+		try (RecordingReaderCache readers = new RecordingReaderCache()) {
+			clip.rescueClips(rescueParameters(), new TIntObjectHashMap<>(), TEST_BAM, null, testFolder.getRoot().getAbsolutePath(), 20, 5, 50, readers);
+			assertEquals(List.of(TEST_BAM), readers.requested);
+		}
+	}
+
+	@Test
+	public void rescueClipsWithNormalBamReadsBoth() throws Exception {
+		clip = TestUtil.setUpClipRecord("chr10", "chr10", false, true);
+		try (RecordingReaderCache readers = new RecordingReaderCache()) {
+			clip.rescueClips(rescueParameters(), new TIntObjectHashMap<>(), TEST_BAM, CONTROL_BAM, testFolder.getRoot().getAbsolutePath(), 20, 5, 50, readers);
+			assertEquals(List.of(TEST_BAM, CONTROL_BAM), readers.requested);
+		}
+	}
 }

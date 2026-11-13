@@ -6,7 +6,7 @@
  */
 package org.qcmg.qsv.assemble;
 
-import gnu.trove.map.hash.TObjectIntHashMap;
+import gnu.trove.map.hash.TIntIntHashMap;
 
 import java.util.Arrays;
 
@@ -19,7 +19,14 @@ public class Read {
 	private final int sequenceLength;
 	private final String forwordSeed;
 	private final String reverseSeed;
-	private TObjectIntHashMap<String> seeds;
+	private final int forwardSeedKey;
+	private final int reverseSeedKey;
+	/*
+	 * hashCode is called for every matching read of every seed during assembly, and is O(read length), so cache it.
+	 * Reset whenever the header or sequence changes
+	 */
+	private int hash;
+	private boolean hashSet;
 	
 	public Read (String header, String tsequence) throws Exception {
 		if (header.startsWith(">") || header.startsWith("@")) {
@@ -37,6 +44,8 @@ public class Read {
 		
 		forwordSeed = String.copyValueOf(sequence, 0, QSVAssemble.SEED_LENGTH);
 		reverseSeed = String.copyValueOf(sequence, sequenceLength - QSVAssemble.SEED_LENGTH, QSVAssemble.SEED_LENGTH);
+		forwardSeedKey = seedKey(this.sequence, 0);
+		reverseSeedKey = seedKey(this.sequence, sequenceLength - QSVAssemble.SEED_LENGTH);
 		
 		checkSequence();
 	}
@@ -58,6 +67,8 @@ public class Read {
 		
 		forwordSeed = String.copyValueOf(this.sequence, 0, QSVAssemble.SEED_LENGTH);
 		reverseSeed = String.copyValueOf(this.sequence, sequenceLength - QSVAssemble.SEED_LENGTH, QSVAssemble.SEED_LENGTH);
+		forwardSeedKey = seedKey(this.sequence, 0);
+		reverseSeedKey = seedKey(this.sequence, sequenceLength - QSVAssemble.SEED_LENGTH);
 		
 		checkSequence();
 	}	
@@ -74,15 +85,52 @@ public class Read {
 	}
 	
 	/*
-	 * Only creates it when needed for space and time reasons
+	 * Each base takes 3 bits, so a SEED_LENGTH (10) base seed fits in 30 bits of an int, and distinct seeds always get distinct keys.
+	 * Used instead of String seeds to avoid creating a String for every position of every seed read.
 	 */
-	public void createHashtable() {
-		seeds = new TObjectIntHashMap<>((sequenceLength - QSVAssemble.SEED_LENGTH) * 2);	// set initial size to avoid resizing
-		for (int i = 0; i <= sequenceLength - QSVAssemble.SEED_LENGTH; i++) {
-			seeds.put(String.copyValueOf(sequence, i, QSVAssemble.SEED_LENGTH), i);
-		}
+	private static int baseCode(char c) {
+		return switch (c) {
+			case 'A' -> 0;
+			case 'C' -> 1;
+			case 'G' -> 2;
+			case 'T' -> 3;
+			default -> 4;		// only N gets here, as checkSequence only allows ACGTN
+		};
 	}
-	
+
+	private static int seedKey(char[] seq, int from) {
+		int key = 0;
+		for (int i = from, end = from + QSVAssemble.SEED_LENGTH; i < end; i++) {
+			key = (key << 3) | baseCode(seq[i]);
+		}
+		return key;
+	}
+
+	/*
+	 * Map of seed key to the position of that seed in this read. Where a seed occurs more than once, the last position wins.
+	 * Missing seeds return -1.
+	 */
+	public TIntIntHashMap createSeedPositions() {
+		int seedCount = sequenceLength - QSVAssemble.SEED_LENGTH + 1;
+		TIntIntHashMap seeds = new TIntIntHashMap(seedCount * 2, 0.5f, -1, -1);
+		int mask = (1 << (3 * QSVAssemble.SEED_LENGTH)) - 1;
+		int key = seedKey(sequence, 0);
+		seeds.put(key, 0);
+		for (int i = 1; i < seedCount; i++) {
+			key = ((key << 3) | baseCode(sequence[i + QSVAssemble.SEED_LENGTH - 1])) & mask;
+			seeds.put(key, i);
+		}
+		return seeds;
+	}
+
+	public int getSeedKey() {
+		return forwardSeedKey;
+	}
+
+	public int getReverseSeedKey() {
+		return reverseSeedKey;
+	}
+
 	public int length() {
 		return sequenceLength;
 	}
@@ -96,10 +144,6 @@ public class Read {
 	}
 	
 	
-	public TObjectIntHashMap<String> getHashtable() {
-		if (seeds == null) createHashtable(); // Create it if it hasn't been created yet.
-		return seeds;
-	}
 	
 	/*
 	 * Checks to determine if the position given (when adjusted for the read position) is 
@@ -115,12 +159,20 @@ public class Read {
 	public char charAt(int pos, int position) {
 		return sequence[pos - position];
 	}
+
+	/*
+	 * Base at the given (0-based) offset in this read
+	 */
+	char baseAt(int offset) {
+		return sequence[offset];
+	}
 	public String getSequence() {
 		return String.copyValueOf(sequence);
 	}
 	
 	public void setSequence(String newSequence) {
 		sequence = newSequence.toCharArray();
+		hashSet = false;
 	}
 	
 	public String getHeader() {
@@ -129,6 +181,7 @@ public class Read {
 	
 	public void setHeader(String newHeader) {
 		header = newHeader;
+		hashSet = false;
 	}
 
 	/*
@@ -137,6 +190,14 @@ public class Read {
 	 */
 	@Override
 	public int hashCode() {
+		if ( ! hashSet) {
+			hash = computeHashCode();
+			hashSet = true;
+		}
+		return hash;
+	}
+
+	private int computeHashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((header == null) ? 0 : header.hashCode());

@@ -85,6 +85,7 @@ range = Opt, specify one or more chromosomes or inter for translocations. Def={a
 repeat_cutoff = Opt, specified number of clipped reads to define a potential repeat region, Def=1000
 tiled_aligner = (*) Req, tiled aligner file with full path, created by our in-home aligner - q3tiledaligner.  
 qcmg = Opt, set to true if plan to create more output for the user named qcmg. Def=false. 
+filter_threads = (*) Opt, total number of threads used to read, annotate and filter the input BAM(s), shared between the test and control BAMs. Def=2 per BAM.
 
 [pair]
 pairing_type = (*) Opt, type of reads [pe,lmp,imp]. Def=pe.
@@ -98,6 +99,9 @@ clip_query = (*) Opt, filtering query for clips. Def="and (Cigar_M > 34, MD_mism
 clip_size = Opt, number of reads required to proceed with soft clip SV signature detection. Def=3.
 consensus_length = Opt, minimum length of soft clip consensus sequence. Def=20.
 single_side_clip = Opt, set to true if SV signatures with soft clip evidence at one breakpoint should be included. Def=false.
+main_threads = (*) Opt, number of chromosomes whose soft clips are analysed at the same time. Def=1 if there are more than 5 million clips, otherwise 3.
+define_threads = (*) Opt, number of threads used by each main thread to define breakpoints and align clip consensus sequences. Def=2 if there are more than 5 million clips, otherwise 4.
+translocation_threads = (*) Opt, number of threads used to find soft clip translocations. Def=4 if there are more than 5 million clips, otherwise 10.
 
 [test]
 name = Req, test sample name which may indicate sample id, name or type.  
@@ -141,6 +145,26 @@ qsv has two analysis modes: pair (Discordant pair)  and clip (Soft clipping). Th
  * SOLiD long-mate paired and paired-end sequencing data mapped using bioscope or lifescope (discordant pair mode only).
  * Illumina paired-end sequencing data mapped using BWA (discordant pair and soft clipping modes).
  * Illumina long mate paired sequencing data mapped using BWA (discordant pair and soft clipping modes).
+
+### Thread options: `filter_threads` under [general], and `main_threads`, `define_threads` and `translocation_threads` under [clip]
+These options are optional, and must be at least 1. The values used are written to the log file at startup.
+ * `filter_threads`: threads that read, annotate and filter the input BAMs before the discordant pair and soft clip analysis. One pool is shared by the test and control BAMs, and the longest chromosomes are started first.
+ * `main_threads`: chromosomes analysed at the same time in the soft clip analysis. Each one holds all of its chromosome's clips in memory, so raising this increases memory use. When it is more than 1, the longest chromosomes are started first.
+ * `define_threads`: threads used by each main thread to define breakpoints, rescue clips and align clip consensus sequences. The total number of soft clip threads is about `main_threads` x `define_threads`.
+ * `translocation_threads`: threads used in the final stage of the soft clip analysis, which looks for translocations between pairs of chromosomes.
+
+The defaults suit a machine with 8 cores. On a WGS tumour/normal pair, a machine with 16 cores and `-Xmx90G` ran in about 1h12m with:
+~~~~{.text}
+[general]
+filter_threads = 16
+
+[clip]
+main_threads = 2
+define_threads = 16
+translocation_threads = 16
+~~~~
+
+When `main_threads` or `translocation_threads` is more than 1, the order in which SVs are written, and so their ids (eg. sv_1), can differ between runs. The SVs themselves are the same.
 
 ### `pairing_type` option under [pair] section
 

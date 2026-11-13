@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
@@ -49,8 +51,10 @@ import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.splitread.UnmappedRead;
+import org.qcmg.qsv.annotate.AnnotateFilterMT;
 import org.qcmg.qsv.util.CustomThreadPoolExecutor;
 import org.qcmg.qsv.util.QSVUtil;
+import org.qcmg.qsv.util.SamReaderCache;
 
 import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
 import gnu.trove.map.TIntObjectMap;
@@ -85,9 +89,12 @@ public class FindClipClustersMT  {
 	private final int CLIP_SIZE;
 
 	public FindClipClustersMT(QSVParameters tumourParameters, QSVParameters normalParameters, String softclipDir, Map<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords, Options options, String analysisId, long clipCount, TIntObjectMap<int[]> cache) throws Exception {
-		this.noOfThreads = clipCount > 5000000 ? 1 : 3;
-		this.noOfFinalThreads = clipCount > 5000000 ? 4 : 10;
-		this.defineThreadNo = clipCount > 5000000 ? 2 : 4;
+		Integer mainThreads = options.getMainThreads();
+		this.noOfThreads = mainThreads != null ? mainThreads : (clipCount > 5000000 ? 1 : 3);
+		Integer translocationThreads = options.getTranslocationThreads();
+		this.noOfFinalThreads = translocationThreads != null ? translocationThreads : (clipCount > 5000000 ? 4 : 10);
+		Integer defineThreads = options.getDefineThreads();
+		this.defineThreadNo = defineThreads != null ? defineThreads : (clipCount > 5000000 ? 2 : 4);
 
 		logger.info("Total clips: " + clipCount + ", will use " + noOfThreads + " main threads, " + noOfFinalThreads + " final threads and " + defineThreadNo + " define threads");
 
@@ -151,9 +158,15 @@ public class FindClipClustersMT  {
 		ExecutorService filterThreads = new CustomThreadPoolExecutor(noOfThreads, exitStatus, logger);
 		try {
 
-			for (Entry<String, List<Chromosome>> entry: tumourParameters.getChromosomes().entrySet()) {
-				readQueue.add(entry.getValue());
+			List<List<Chromosome>> groups = new ArrayList<>(tumourParameters.getChromosomes().values());
+			if (noOfThreads > 1) {
+				/*
+				 * longest first, so that the threads don't end up waiting on one long chromosome at the end.
+				 * With a single thread the original order is kept (the order the records are written in, and so their ids, depends on it)
+				 */
+				groups.sort(Comparator.comparingLong((List<Chromosome> g) -> AnnotateFilterMT.totalLength(g)).reversed());
 			}
+			readQueue.addAll(groups);
 
 			// kick-off cluster thread
 			for (int i = 0; i < noOfThreads; i++) {
@@ -205,9 +218,7 @@ public class FindClipClustersMT  {
 				noOfFinalThreads, exitStatus, logger);
 
 		try {
-			Set<String> referenceKeys = getReferenceKeys();
-
-            finalQueue.addAll(referenceKeys);
+			finalQueue.addAll(getReferenceKeysLargestFirst());
 
 			final CountDownLatch overlapLatch = new CountDownLatch(noOfFinalThreads);	
 			for (int i = 0; i < noOfFinalThreads; i++) {
@@ -228,6 +239,30 @@ public class FindClipClustersMT  {
 			overlapThreads.shutdownNow();
 			logger.info("Finished finding clipping translocations");
 		}
+	}
+
+	/**
+	 * Returns the reference keys ordered so that those with the most work (clips + discordant pair clusters) come first.
+	 * Keys are processed one per thread, so starting the big ones first stops a single large key from
+	 * running on its own at the end while the other threads sit idle.
+	 * Ties are broken on the key name so that the order is deterministic.
+	 */
+	List<String> getReferenceKeysLargestFirst() {
+		Map<String, Integer> sizes = new HashMap<>();
+		for (String key : getReferenceKeys()) {
+			List<SoftClipCluster> clips = clipRecordsMap.get(key);
+			int size = clips == null ? 0 : clips.size();
+			for (Map<String, List<DiscordantPairCluster>> map : tumorClusterRecords.values()) {
+				List<DiscordantPairCluster> clusters = map.get(key);
+				if (clusters != null) {
+					size += clusters.size();
+				}
+			}
+			sizes.put(key, size);
+		}
+		List<String> keys = new ArrayList<>(sizes.keySet());
+		keys.sort(Comparator.comparing((String k) -> sizes.get(k)).reversed().thenComparing(Comparator.naturalOrder()));
+		return keys;
 	}
 
 	private Set<String> getReferenceKeys() {
@@ -347,15 +382,15 @@ public class FindClipClustersMT  {
 		}
 	}
 	
-	private void rescueQSVRecords(String key, List<QSVCluster> inputClusters) throws Exception {
+	private void rescueQSVRecords(String key, List<QSVCluster> inputClusters, SamReaderCache readers) throws Exception {
 		
 		logger.info("Finding split read alignments in " + inputClusters.size() + " records for " + key);
 		int count = 0;
 
 		String blatFile = softClipDir + QSVUtil.getFileSeparator() + UUID.randomUUID();
 		for (QSVCluster cluster: inputClusters) {
-			cluster.rescueClippping(cache, tumourParameters, normalParameters, softClipDir, CONSENSUS_LENGTH, MIN_INSERT_SIZE);
-			cluster.createSplitReadContig(cache, tumourParameters, normalParameters, softClipDir, isSplitRead, reference, blatFile);
+			cluster.rescueClippping(cache, tumourParameters, normalParameters, softClipDir, CONSENSUS_LENGTH, MIN_INSERT_SIZE, readers);
+			cluster.createSplitReadContig(cache, tumourParameters, normalParameters, softClipDir, isSplitRead, reference, blatFile, readers);
 		}
 
 		for (QSVCluster r: inputClusters) {
@@ -617,11 +652,15 @@ public class FindClipClustersMT  {
 	
 				/*
 				 * This gives me possibly many BLATRecords per sequence. Here, we only want the "best" record (the one with the highest score)
+				 * The sequences are aligned independently, so this is spread over the define threads (which are idle at this point)
 				 */
-				Map<String, List<BLATRecord>> allBlatRecords = TiledAlignerUtil.runTiledAlignerCache(tumourParameters.getReference(), tumourParameters.getRefIndexPositionMap(), cache, sequenceNameMapToSendToTiledAligner, 13, "FindClipClustersMT.blatBreakpoints", false, false);
-				logger.debug("in blatBreakpoints all, allBlatRecords size: " + allBlatRecords.size());
-				for (Entry<String, List<BLATRecord>> entry : allBlatRecords.entrySet()) {
-					logger.debug("in blatBreakpoints all: key: " + entry.getKey() + ", blat recs: " + entry.getValue().stream().map(BLATRecord::toString).collect(Collectors.joining(",")));
+				Map<String, List<BLATRecord>> allBlatRecords = TiledAlignerUtil.runTiledAlignerCache(tumourParameters.getReference(), tumourParameters.getRefIndexPositionMap(), cache, sequenceNameMapToSendToTiledAligner, 13, "FindClipClustersMT.blatBreakpoints", false, false, defineThreadNo);
+				final boolean debug = logger.isLevelEnabled(QLevel.DEBUG);
+				if (debug) {
+					logger.debug("in blatBreakpoints all, allBlatRecords size: " + allBlatRecords.size());
+					for (Entry<String, List<BLATRecord>> entry : allBlatRecords.entrySet()) {
+						logger.debug("in blatBreakpoints all: key: " + entry.getKey() + ", blat recs: " + entry.getValue().stream().map(BLATRecord::toString).collect(Collectors.joining(",")));
+					}
 				}
 				
 				
@@ -633,9 +672,11 @@ public class FindClipClustersMT  {
 				for (Entry <String, List<BLATRecord>> entry : allBlatRecords.entrySet()) {
 					bestBlatRecords.put(sequenceNameMapToSendToTiledAligner.get(entry.getKey()), null == entry.getValue() || entry.getValue().isEmpty() ? null : entry.getValue().getLast());
 				}
-				logger.debug("in blatBreakpoints best, bestBlatRecords size: " + bestBlatRecords.size());
-				for (Entry<String, BLATRecord> entry : bestBlatRecords.entrySet()) {
-					logger.debug("in blatBreakpoints best: key: " + entry.getKey() + ", blat rec: " + (null == entry.getValue() ? "null" : entry.getValue().toString()));
+				if (debug) {
+					logger.debug("in blatBreakpoints best, bestBlatRecords size: " + bestBlatRecords.size());
+					for (Entry<String, BLATRecord> entry : bestBlatRecords.entrySet()) {
+						logger.debug("in blatBreakpoints best: key: " + entry.getKey() + ", blat rec: " + (null == entry.getValue() ? "null" : entry.getValue().toString()));
+					}
 				}
 				/*
 				 * get copy of list of breakpoints, as they are cleared upon calling matchBlatBreakpoints
@@ -654,21 +695,25 @@ public class FindClipClustersMT  {
 			//determine the breakpoint 		
 			int count = 0;
 			List<Breakpoint> nonBlatAligned = new ArrayList<>();
+			final boolean debug = logger.isLevelEnabled(QLevel.DEBUG);
 
 			for (Breakpoint r : breakpoints) {
 				
 				BLATRecord blatR = blatRecords.get(r.getName());
 				if (null != blatR) {
 					
-					logger.debug("breakpoint: " + r.toLowConfidenceString() + ", blat: " + blatR);
+					if (debug) {
+						logger.debug("breakpoint: " + r.toLowConfidenceString() + ", blat: " + blatR);
+					}
 
 					boolean matchingBreakpoint = r.findMateBreakpoint(blatR);
 
-					logger.debug("match?: " + matchingBreakpoint + "allChromosomes?: " + allChromosomes + ", translocationOnly: " + translocationOnly + ", r.isTranslocation(): " + r.isTranslocation());
+					if (debug) {
+						logger.debug("match?: " + matchingBreakpoint + "allChromosomes?: " + allChromosomes + ", translocationOnly: " + translocationOnly + ", r.isTranslocation(): " + r.isTranslocation());
+					}
 					if (matchingBreakpoint) {
 						//if running translocations, only get the matches on different chromosomes
 						if (allChromosomes || (translocationOnly && r.isTranslocation()) || (!translocationOnly && !r.isTranslocation())) {
-							logger.debug("allChromosomes || (translocationOnly && r.isTranslocation()) || (!translocationOnly && !r.isTranslocation()) is true ");
 							count++;
 							
 							breakpointMap.computeIfAbsent(r.getReferenceKey(), v -> new ArrayList<>()).add(r);
@@ -848,7 +893,7 @@ public class FindClipClustersMT  {
             int countOutputSleep = 0;
 			boolean run = true;
 
-			try {
+			try (SamReaderCache readers = new SamReaderCache()) {
 
 				String referenceKey;
 
@@ -885,7 +930,7 @@ public class FindClipClustersMT  {
 						}	 
 						List<QSVCluster> records = new ArrayList<>();
 						findOverlappingClusters(referenceKey, records, clusters, clips, true);
-						rescueQSVRecords(referenceKey, records);
+						rescueQSVRecords(referenceKey, records, readers);
 
 						qsvRecordWriter.writeTumourSVRecords(records);
 					} // end else
@@ -1021,8 +1066,9 @@ public class FindClipClustersMT  {
 		public List<QSVCluster> call() {
 
 			boolean run = true;
+			final boolean debug = logger.isLevelEnabled(QLevel.DEBUG);
 
-			try {
+			try (SamReaderCache readers = new SamReaderCache()) {
 
 				List<QSVCluster> inputClusters;
 				while (run) {
@@ -1055,22 +1101,26 @@ public class FindClipClustersMT  {
 						boolean log = false;
 						
 						for (QSVCluster cluster: inputClusters) {
-							cluster.rescueClippping(cache, tumourParameters, normalParameters, softclipDir, consensusLength, minInsertSize);
-							logger.debug("rescue clipping about to call createSplitReadContig");
-							cluster.createSplitReadContig(cache, tumourParameters, normalParameters, softclipDir, isSplitRead, reference, blatFile, log);
-							logger.debug("rescue clipping, cluster: " + cluster.toTabString());
+							cluster.rescueClippping(cache, tumourParameters, normalParameters, softclipDir, consensusLength, minInsertSize, readers);
+							cluster.createSplitReadContig(cache, tumourParameters, normalParameters, softclipDir, isSplitRead, reference, blatFile, log, readers);
+							if (debug) {
+								logger.debug("rescue clipping, cluster: " + cluster.toTabString());
+							}
 						}
-						
+
 						for (QSVCluster cluster: inputClusters) {
-							logger.debug("rescue clipping about to call findSplitReadContig, cluster: " + cluster.toTabString());
-							logger.debug("rescue clipping about to call findSplitReadContig, getConfidenceLevel: " + cluster.getConfidenceLevel(true));
-							logger.debug("rescue clipping about to call findSplitReadContig, isPotentialSplitRead: " + cluster.isPotentialSplitRead());
-							logger.debug("tumourParameters getChromosomes size " + tumourParameters.getChromosomes().size());
-							logger.debug("isSplitRead: " + isSplitRead);
+							// building these strings is costly (toTabString per cluster), so only do it when they will be logged
+							if (debug) {
+								logger.debug("rescue clipping about to call findSplitReadContig, cluster: " + cluster.toTabString()
+										+ ", getConfidenceLevel: " + cluster.getConfidenceLevel(true)
+										+ ", isPotentialSplitRead: " + cluster.isPotentialSplitRead() + ", isSplitRead: " + isSplitRead);
+							}
 							cluster.findSplitReadContig(tumourParameters, isSplitRead, reference, log);
-							logger.debug("rescue clipping called findSplitReadContig, cluster: " + cluster.toTabString());
-							logger.debug("rescue clipping called findSplitReadContig, getConfidenceLevel: " + cluster.getConfidenceLevel(true));
-							logger.debug("rescue clipping called findSplitReadContig, isPotentialSplitRead: " + cluster.isPotentialSplitRead());
+							if (debug) {
+								logger.debug("rescue clipping called findSplitReadContig, cluster: " + cluster.toTabString()
+										+ ", getConfidenceLevel: " + cluster.getConfidenceLevel(true)
+										+ ", isPotentialSplitRead: " + cluster.isPotentialSplitRead());
+							}
 							clusters.add(cluster);
 						}
 

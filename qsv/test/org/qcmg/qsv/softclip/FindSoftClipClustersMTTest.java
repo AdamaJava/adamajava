@@ -62,6 +62,9 @@ public class FindSoftClipClustersMTTest {
 		expect(options.getPlatform()).andReturn("illumina");
 		expect(options.getIncludeTranslocations()).andReturn(true);
 		expect(options.allChromosomes()).andReturn(true);
+		expect(options.getTranslocationThreads()).andReturn(null);
+		expect(options.getMainThreads()).andReturn(null);
+		expect(options.getDefineThreads()).andReturn(null);
 		expect(options.getGffFiles()).andReturn(new ArrayList<String>());
 		replay(options);    
         
@@ -100,6 +103,52 @@ public class FindSoftClipClustersMTTest {
 		
 
 	@Test
+	public void referenceKeysLargestFirst() throws Exception {
+		File tumorBam = TestUtil.createHiseqBamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
+		QSVParameters tumor = TestUtil.getQSVParameters(testFolder.getRoot(), tumorBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true,  "clip");
+		QSVParameters normal = TestUtil.getQSVParameters(testFolder.getRoot(), tumorBam.getAbsolutePath(), tumorBam.getAbsolutePath(), false,  "clip");
+		tumor.setReference("file");
+		normal.setReference("file");
+		Options options = createMock(Options.class);
+		expect(options.isSplitRead()).andReturn(false);
+		expect(options.isQCMG()).andReturn(true);
+		expect(options.singleSided()).andReturn(false);
+		expect(options.getConsensusLength()).andReturn(20);
+		expect(options.getClipSize()).andReturn(3);
+		expect(options.getMinInsertSize()).andReturn(50);
+		expect(options.getReference()).andReturn("file");
+		expect(options.getAnalysisMode()).andReturn("both");
+		expect(options.getPlatform()).andReturn("illumina");
+		expect(options.getIncludeTranslocations()).andReturn(true);
+		expect(options.allChromosomes()).andReturn(true);
+		expect(options.getGffFiles()).andReturn(new ArrayList<String>());
+		expect(options.getTranslocationThreads()).andReturn(16);
+		expect(options.getMainThreads()).andReturn(null);
+		expect(options.getDefineThreads()).andReturn(8);
+		replay(options);
+
+		File softClipDir = testFolder.newFolder("softclip");
+		writeSoftClipFiles(softClipDir);
+
+		DiscordantPairCluster c = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder.getRoot(), "chr7", "chr7");
+		Map<PairGroup, Map<String,List<DiscordantPairCluster>>> tumorClusterRecords = new HashMap<>();
+		Map<String,List<DiscordantPairCluster>> aac = new HashMap<>();
+		aac.put("chr1:chr3", new ArrayList<>(List.of(c)));
+		aac.put("chr1:chr2", new ArrayList<>(List.of(c, c)));
+		aac.put("chr2:chr5", new ArrayList<>(List.of(c)));
+		tumorClusterRecords.put(PairGroup.AAC, aac);
+		Map<String,List<DiscordantPairCluster>> aab = new HashMap<>();
+		// sizes are summed over pair groups: chr2:chr5 ends up with 3
+		aab.put("chr2:chr5", new ArrayList<>(List.of(c, c)));
+		aab.put("chr1:chr4", new ArrayList<>(List.of(c)));
+		tumorClusterRecords.put(PairGroup.AAB, aab);
+
+		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softClipDir.getAbsolutePath(), tumorClusterRecords,  options, "analysisId", 200, new TIntObjectHashMap<int[]>());
+		// largest first, ties broken on name
+		assertEquals(List.of("chr2:chr5", "chr1:chr2", "chr1:chr3", "chr1:chr4"), worker.getReferenceKeysLargestFirst());
+	}
+
+	@Test
 	public void testClipClusterWorker() throws Exception {
 		File tumorBam = TestUtil.createHiseqBamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
         QSVParameters tumor = TestUtil.getQSVParameters(testFolder.getRoot(), tumorBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true,  "clip");
@@ -118,6 +167,9 @@ public class FindSoftClipClustersMTTest {
 		expect(options.getPlatform()).andReturn("illumina");
 		expect(options.getIncludeTranslocations()).andReturn(true);
 		expect(options.allChromosomes()).andReturn(true);
+		expect(options.getTranslocationThreads()).andReturn(null);
+		expect(options.getMainThreads()).andReturn(null);
+		expect(options.getDefineThreads()).andReturn(null);
 		expect(options.getGffFiles()).andReturn(new ArrayList<String>());
 		replay(options);    
         

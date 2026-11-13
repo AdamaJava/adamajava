@@ -8,17 +8,20 @@ package au.edu.qimr.tiledaligner.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import gnu.trove.map.hash.THashMap;
 import htsjdk.samtools.reference.FastaSequenceIndex;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 
 public class ReferenceUtil {
 	
-	public static final Map<String, byte[]> referenceCache = new THashMap<>();
+	/*
+	 * read without locking by many threads, so must be a concurrent map
+	 * (a THashMap can return inconsistent results if read while another thread is adding to it)
+	 */
+	public static final Map<String, byte[]> referenceCache = new ConcurrentHashMap<>();
 	
 	public static String getRefFromChrStartStop(String refFile, String contig, int start, int stop) {
 		String refContig = refFile + contig;
@@ -45,9 +48,15 @@ public class ReferenceUtil {
 		if (start <= 0 || stop > ref.length) {
 			System.out.println("ChrPosition goes beyond edge of contig: " + contig + ":" + start + "-" + stop + ", ref length: " + ref.length);
 		}
-		byte [] refPortion = Arrays.copyOfRange(referenceCache.get(refContig), (start < 0 ? 0 : start), (stop >= ref.length ? ref.length - 1 : stop));
-		
-		return new String(refPortion);
+		/*
+		 * same as new String(Arrays.copyOfRange(ref, from, to)), but without the intermediate copy (these can be up to 500kb)
+		 */
+		int from = start < 0 ? 0 : start;
+		int to = stop >= ref.length ? ref.length - 1 : stop;
+		if (from > to) {
+			throw new IllegalArgumentException(from + " > " + to);		// as thrown by Arrays.copyOfRange
+		}
+		return new String(ref, from, to - from);
 	}
 	
 	private static void loadIntoReferenceCache(String refFileName, String contig) {

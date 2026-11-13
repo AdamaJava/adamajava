@@ -7,6 +7,7 @@
 package org.qcmg.qsv.assemble;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,8 +21,16 @@ public class Alignment {
 
 	public Alignment(ConcurrentHashMap<Integer, ReadMatch> reads, Read seed)
 	{
+		this(reads.values(), seed);
+	}
+
+	/*
+	 * The order of the reads makes no difference to the length or consensus sequence
+	 */
+	public Alignment(Collection<ReadMatch> reads, Read seed)
+	{
 		this.seed = seed;
-		matchedReads = new ArrayList<>(reads.values());
+		matchedReads = new ArrayList<>(reads);
 	}
 	
 	/*
@@ -64,30 +73,17 @@ public class Alignment {
 	 * tie between two or more bases or there isn't at least MINIMUM_READ_EXTEND number
 	 * of reads to validate that base then it tries to return the original contig base
 	 * first and if that fails it return an N.
+	 * 
+	 * The per position counts are worked out up front by baseCounts (one pass over each read), 
+	 * rather than by looking at every read for every position.
 	 */
-	private char getConsensusBase(int position)
+	private char getConsensusBase(int position, int[][] counts)
 	{	
-		char[] bases = getBasesOJH(position);
-		int a = 0;
-		int t = 0;
-		int c = 0;
-		int g = 0;
-        for (char basis : bases) {
-            switch (basis) {
-                case 'A':
-                    a++;
-                    break;
-                case 'T':
-                    t++;
-                    break;
-                case 'C':
-                    c++;
-                    break;
-                case 'G':
-                    g++;
-                    break;
-            }
-        }
+		int index = position - start;
+		int a = counts[0][index];
+		int t = counts[1][index];
+		int c = counts[2][index];
+		int g = counts[3][index];
 		
 		if(a > t && a > c && a > g && a >= QSVAssemble.MINIMUM_READ_EXTEND) { //Is A the most common?
 			return 'A';
@@ -105,6 +101,32 @@ public class Alignment {
 			}
 		}
 	}
+
+	/*
+	 * counts of A, T, C and G (in that order) at each position from start (inclusive) to length (exclusive), over all the matched reads.
+	 * Gives the same counts as getBasesOJH.
+	 */
+	private int[][] baseCounts() {
+		int span = Math.max(0, length - start);
+		int[][] counts = new int[4][span];
+		if (span == 0) {
+			return counts;		// calculateLength not called, so there are no positions to look at (as before)
+		}
+		for (ReadMatch match : matchedReads) {
+			Read read = match.read();
+			int offset = match.matchedPos() - start;
+			for (int k = 0, len = read.length(); k < len; k++) {
+				switch (read.baseAt(k)) {
+					case 'A' -> counts[0][offset + k]++;
+					case 'T' -> counts[1][offset + k]++;
+					case 'C' -> counts[2][offset + k]++;
+					case 'G' -> counts[3][offset + k]++;
+					default -> { }
+				}
+			}
+		}
+		return counts;
+	}
 	
 	/*
 	 * Constructs the consensus sequence out of the matching reads. It does this by going from
@@ -114,9 +136,10 @@ public class Alignment {
 	 */
 	public Read constructConsensusSequence () throws Exception
 	{		
+		int[][] counts = baseCounts();
 		StringBuilder sb = new StringBuilder();
 		for (int i = start; i < length; i++) {
-			char cbase = getConsensusBase(i);
+			char cbase = getConsensusBase(i, counts);
 			if (cbase == 'N') {
 				if (i >= seed.length()) { //Reached a base that the program couldn't decided which one it was.	Either there was less than Assembler.MINIMUM_READ_EXTEND reads or there was no base that had the majority			
 

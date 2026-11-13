@@ -131,6 +131,93 @@ public class OptionsTest {
     	options.parseIniFile();
     }
     
+    private Options optionsWithClipLine(String clipLine) throws Exception {
+    	File tmp = testFolder.newFolder();
+    	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both");
+    	Path ini = Paths.get(tmp.getAbsolutePath(), "test.ini");
+    	if (clipLine != null) {
+    		String content = new String(Files.readAllBytes(ini));
+    		Files.write(ini, content.replace("[clip]\n", "[clip]\n" + clipLine + "\n").getBytes());
+    	}
+    	Options options = new Options(args);
+    	options.parseIniFile();
+    	return options;
+    }
+
+    @Test
+    public void translocationThreadsDefaultsToNull() throws Exception {
+    	assertNull(optionsWithClipLine(null).getTranslocationThreads());
+    }
+
+    @Test
+    public void translocationThreadsFromIni() throws Exception {
+    	assertEquals(Integer.valueOf(16), optionsWithClipLine("translocation_threads=16").getTranslocationThreads());
+    }
+
+    @Test
+    public void defineThreadsDefaultsToNull() throws Exception {
+    	assertNull(optionsWithClipLine(null).getDefineThreads());
+    }
+
+    @Test
+    public void defineThreadsFromIni() throws Exception {
+    	Options options = optionsWithClipLine("define_threads=8\ntranslocation_threads=6");
+    	assertEquals(Integer.valueOf(8), options.getDefineThreads());
+    	assertEquals(Integer.valueOf(6), options.getTranslocationThreads());
+    }
+
+    @Test
+    public void mainThreadsDefaultsToNull() throws Exception {
+    	assertNull(optionsWithClipLine(null).getMainThreads());
+    }
+
+    @Test
+    public void mainThreadsFromIni() throws Exception {
+    	assertEquals(Integer.valueOf(3), optionsWithClipLine("main_threads=3").getMainThreads());
+    }
+
+    @Test(expected = QSVException.class)
+    public void mainThreadsMustBePositive() throws Exception {
+    	optionsWithClipLine("main_threads=0");
+    }
+
+    @Test(expected = QSVException.class)
+    public void defineThreadsMustBePositive() throws Exception {
+    	optionsWithClipLine("define_threads=0");
+    }
+
+    @Test(expected = QSVException.class)
+    public void translocationThreadsMustBePositive() throws Exception {
+    	optionsWithClipLine("translocation_threads=0");
+    }
+
+    private Options optionsWithGeneralLine(String generalLine) throws Exception {
+    	File tmp = testFolder.newFolder();
+    	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both");
+    	Path ini = Paths.get(tmp.getAbsolutePath(), "test.ini");
+    	String content = new String(Files.readAllBytes(ini));
+    	assertTrue(content.contains("[general]\n"));
+    	Files.write(ini, content.replace("[general]\n", "[general]\n" + generalLine + "\n").getBytes());
+    	Options options = new Options(args);
+    	options.parseIniFile();
+    	return options;
+    }
+
+    @Test
+    public void filterThreadsDefaultsToNull() throws Exception {
+    	assertNull(optionsWithClipLine(null).getFilterThreads());
+    }
+
+    @Test
+    public void filterThreadsFromIni() throws Exception {
+    	assertEquals(Integer.valueOf(8), optionsWithGeneralLine("filter_threads=8").getFilterThreads());
+    }
+
+    @Test(expected = QSVException.class)
+    public void filterThreadsMustBePositive() throws Exception {
+    	optionsWithGeneralLine("filter_threads=0");
+    }
+
     @Test
     public void testGoodIniFileOptions() throws Exception {
     	File tmp = testFolder.newFolder();

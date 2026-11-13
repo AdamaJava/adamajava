@@ -379,27 +379,18 @@ public class QSVPipeline {
 
 		logger.info("Starting BAM filter threads");
 
-		ExecutorService executorService = new CustomThreadPoolExecutor(getThreadNo(), exitStatus, logger);
-		CountDownLatch countDownLatch = new CountDownLatch(getThreadNo());
-
-		if (options.isTwoFileMode()) {        
-			AnnotateFilterMT normalWorker = new AnnotateFilterMT(countDownLatch, normal, exitStatus, softclipDir, options);
-			executorService.execute(normalWorker);
+		/*
+		 * Both BAMs are filtered by one shared pool, so that once the (usually smaller) control
+		 * BAM is done, its threads help with the remaining test BAM chromosomes.
+		 * Test BAM first so that its chromosomes are started ahead of the control's.
+		 */
+		List<AnnotateFilterMT> workers = new ArrayList<>(2);
+		AnnotateFilterMT tumorWorker = new AnnotateFilterMT(null, tumor, exitStatus, softclipDir, options);
+		workers.add(tumorWorker);
+		if (options.isTwoFileMode()) {
+			workers.add(new AnnotateFilterMT(null, normal, exitStatus, softclipDir, options));
 		}
-
-		AnnotateFilterMT tumorWorker = new AnnotateFilterMT(countDownLatch, tumor, exitStatus, softclipDir, options);
-		executorService.execute(tumorWorker);
-
-		executorService.shutdown();
-
-		try {
-			countDownLatch.await();
-
-		} catch (InterruptedException e) {
-			logger.debug("Thread interrupted while running qbamfilter");
-			exitStatus.set(1);
-			Thread.currentThread().interrupt();
-		}
+		AnnotateFilterMT.runAll(workers, options.getFilterThreads());
 
 		clipCount = tumorWorker.getClipCount().longValue();
 

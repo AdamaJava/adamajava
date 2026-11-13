@@ -88,6 +88,10 @@ public class Options {
 	private boolean includeTranslocations;
 	private boolean allChromosomes = true;
 	private int repeatCountCutoff = 1000;
+	private Integer translocationThreads;
+	private Integer defineThreads;
+	private Integer mainThreads;
+	private Integer filterThreads;
 
 
 	/**
@@ -177,6 +181,8 @@ public class Options {
 		ranges = generalSection.getAll("range");			
 		processRanges();			
 	
+		
+		filterThreads = getThreadCount(generalSection, "filter_threads");
 		
 		String splitRead = generalSection.get("split_read");
 		if (splitRead != null && splitRead.equals("false")) {
@@ -304,6 +310,10 @@ public class Options {
 				consensusLength = QSVConstants.DEFAULT_CONSENSUS_LENGTH;
 			}
 			
+			translocationThreads = getThreadCount(clipSection, "translocation_threads");
+			defineThreads = getThreadCount(clipSection, "define_threads");
+			mainThreads = getThreadCount(clipSection, "main_threads");
+			
 			String s = clipSection.get("single_side_clip");			
 			if (s != null) {
 				if (s.equals("true")) {
@@ -343,6 +353,56 @@ public class Options {
 
 	public int getRepeatCountCutoff() {
 		return repeatCountCutoff;
+	}
+
+	/**
+	 * Number of threads used to find clipping translocations (the final, per reference-key, stage of the soft clip analysis).
+	 * Null if not set in the ini file, in which case a default based on the clip count is used.
+	 */
+	public Integer getTranslocationThreads() {
+		return translocationThreads;
+	}
+
+	/**
+	 * Number of threads used to define breakpoints and rescue/split-read records for each chromosome
+	 * in the intra-chromosomal stage of the soft clip analysis.
+	 * Null if not set in the ini file, in which case a default based on the clip count is used.
+	 */
+	public Integer getDefineThreads() {
+		return defineThreads;
+	}
+
+	/**
+	 * Number of chromosomes (reference keys) processed at the same time in the intra-chromosomal stage of the soft clip analysis.
+	 * Each has its own pool of define threads, and holds its chromosome's clips in memory.
+	 * Null if not set in the ini file, in which case a default based on the clip count is used (1 for more than 5 million clips, otherwise 3).
+	 */
+	public Integer getMainThreads() {
+		return mainThreads;
+	}
+
+	/**
+	 * Total number of threads used to read, annotate and filter the input BAM(s) at the start of the run (shared between the BAMs).
+	 * Null if not set in the ini file, in which case 2 threads per BAM are used.
+	 */
+	public Integer getFilterThreads() {
+		return filterThreads;
+	}
+
+	/**
+	 * Returns the thread count for the given key in the section, or null if it is not present.
+	 * Throws a QSVException if the value is less than 1.
+	 */
+	private static Integer getThreadCount(Section section, String key) throws QSVException {
+		String value = section.get(key);
+		if (value == null) {
+			return null;
+		}
+		int count = Integer.parseInt(value.trim());
+		if (count < 1) {
+			throw new QSVException("INVALID_THREAD_COUNT", key, String.valueOf(count));
+		}
+		return count;
 	}
 
 	private void processRanges() throws QSVException {

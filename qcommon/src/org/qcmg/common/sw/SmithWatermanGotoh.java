@@ -16,42 +16,153 @@ public class SmithWatermanGotoh {
     private final float gapExtend;
     private final int matchScore;
     private final int mismatchScore;
-    private final String sequenceA;
-    private final String sequenceB;
+    private final char[] sequenceA;
+    private final char[] sequenceB;
     private final int rows;
     private final int columns;
-    private byte[][] pointerMatrix;
-    private short[][] verticalGaps;
-    private short[][] horizontalGaps;
+    /*
+     * Single flat (row * columns + column) matrix of one byte per cell, holding:
+     *  - bits 0-1: the traceback direction (STOP, LEFT, DIAGONAL, UP)
+     *  - bit 2: set if the vertical gap was extended (rather than opened) at this cell
+     *  - bit 3: set if the horizontal gap was extended (rather than opened) at this cell
+     *
+     * The original implementation kept two additional short[rows][columns] matrices of gap lengths.
+     * A gap length at a cell is 1 if the gap was opened there, or 1 + the gap length of the previous cell if it was extended,
+     * so it can be recovered at traceback time by counting consecutive extended flags.
+     * This cuts the memory used per cell from 5 bytes to 1, which keeps the matrix in cache.
+     */
+    private byte[] pointerMatrix;
     private int bestRow;
     private int bestColumn;
-    private static final byte ONE = 1;
     private static final byte STOP = 0;
-    private static final byte LEFT = ONE;
+    private static final byte LEFT = 1;
     private static final byte DIAGONAL = 2;
     private static final byte UP = 3;
-    private static final String GAP = "-";
-    private static final String EMPTY = " ";
-    private static final String MISMATCH = ".";
-    private static final String MATCH = "|";
-    private static final String TAB = "";
+    private static final byte DIRECTION_MASK = 3;
+    private static final byte VERTICAL_GAP_EXTENDED = 4;
+    private static final byte HORIZONTAL_GAP_EXTENDED = 8;
+    private static final char GAP = '-';
+    private static final char EMPTY = ' ';
+    private static final char MISMATCH = '.';
+    private static final char MATCH = '|';
 
     public SmithWatermanGotoh(String a, String b, int matchScore, int mismatchScore, float gapOpen, float gapExtend) {
 
-        this.sequenceA = a;
-        this.sequenceB = b;
+        this.sequenceA = a.toCharArray();
+        this.sequenceB = b.toCharArray();
         this.gapOpen = gapOpen;
         this.gapExtend = gapExtend;
         this.matchScore = matchScore;
         this.mismatchScore = mismatchScore;
-        this.rows = sequenceA.length() + 1;//i
-        this.columns = sequenceB.length() + 1;//j
-        align();
+        this.rows = sequenceA.length + 1;//i
+        this.columns = sequenceB.length + 1;//j
+        if (gapOpen == (int) gapOpen && gapExtend == (int) gapExtend) {
+            fillMatrixInt();
+        } else {
+            fillMatrix();
+        }
     }
 
-    private void align() {
-        fillMatrix();
-//		traceback();
+    /*
+     * Integer version of fillMatrix, used when the gap penalties are whole numbers (as they are for all current callers).
+     * All scores are then whole numbers, which float represents exactly (they are far below 2^24),
+     * so the comparisons, and therefore the alignment, are identical to the float version, but run faster.
+     * Float.NEGATIVE_INFINITY is replaced with a large negative number that can never win a comparison.
+     *
+     * The inner loop is written to be free of data dependent branches, as the outcomes of its comparisons (match or mismatch, gap opened or extended,
+     * traceback direction) are close to random from one cell to the next, and so are mispredicted by the CPU when written as branches:
+     *  - match/mismatch scores come from a per-base profile of sequence B (profile[column] = score of the row's base against seqB[column - 1])
+     *  - the gap extended flags are taken from the sign bit of (open score - extend score), ie. set if extend > open, as before.
+     *    Neither score can be less than (Integer.MIN_VALUE / 2 - gap extend penalty), and the open score is at least -gapOpen, so the subtraction cannot overflow
+     *  - the direction is chosen with the same priority as before (STOP if the score is 0, then DIAGONAL, then UP, then LEFT) using selects
+     */
+    private void fillMatrixInt() {
+        final int cols = columns;
+        final byte[] pointers = new byte[rows * cols];
+        final char[] seqA = sequenceA;
+        final char[] seqB = sequenceB;
+        final int open = (int) gapOpen;
+        final int extend = (int) gapExtend;
+        final int minusInfinity = Integer.MIN_VALUE / 2;
+
+        int[] bestScores = new int[cols];
+        int[] queryGapScores = new int[cols];
+        Arrays.fill(queryGapScores, minusInfinity);
+
+        /*
+         * per base profiles of sequence B, created when first needed
+         */
+        int[][] profiles = new int[128][];
+        int[] scratchProfile = null;
+
+        int bRow = 0;
+        int bColumn = 0;
+        int bestScore = Integer.MIN_VALUE;
+
+        for (int row = 1; row < rows; row++) {
+            int currentAnchorGapScore = minusInfinity;
+            int bestScoreDiagonal = bestScores[0];
+            final char a = seqA[row - 1];
+            final int rowOffset = row * cols;
+            int[] profile;
+            if (a < profiles.length) {
+                profile = profiles[a];
+                if (null == profile) {
+                    profile = profile(a, seqB, cols, null);
+                    profiles[a] = profile;
+                }
+            } else {
+                scratchProfile = profile(a, seqB, cols, scratchProfile);
+                profile = scratchProfile;
+            }
+
+            for (int column = 1; column < cols; column++) {
+                final int totalSimilarityScore = bestScoreDiagonal + profile[column];
+
+                //vertical gaps
+                final int queryGapExtendScore = queryGapScores[column] - extend;
+                final int queryGapOpenScore = bestScores[column] - open;
+                final int queryGapScore = Math.max(queryGapExtendScore, queryGapOpenScore);
+                final int verticalExtendedFlag = ((queryGapOpenScore - queryGapExtendScore) >>> 31) * VERTICAL_GAP_EXTENDED;
+                queryGapScores[column] = queryGapScore;
+
+                //horizontal gaps
+                final int referenceGapExtendScore = currentAnchorGapScore - extend;
+                final int referenceGapOpenScore = bestScores[column - 1] - open;
+                currentAnchorGapScore = Math.max(referenceGapExtendScore, referenceGapOpenScore);
+                final int horizontalExtendedFlag = ((referenceGapOpenScore - referenceGapExtendScore) >>> 31) * HORIZONTAL_GAP_EXTENDED;
+
+                bestScoreDiagonal = bestScores[column];
+                // same as findMaximum: 0 if all are <= 0, otherwise the max
+                final int score = Math.max(0, Math.max(totalSimilarityScore, Math.max(queryGapScore, currentAnchorGapScore)));
+                bestScores[column] = score;
+
+                int direction = score == queryGapScore ? UP : LEFT;
+                direction = score == totalSimilarityScore ? DIAGONAL : direction;
+                direction = score == 0 ? STOP : direction;
+                pointers[rowOffset + column] = (byte) (direction | verticalExtendedFlag | horizontalExtendedFlag);
+
+                if (score > bestScore) {
+                    bRow = row;
+                    bColumn = column;
+                    bestScore = score;
+                }
+            }
+        }
+        this.pointerMatrix = pointers;
+        this.bestRow = bRow;
+        this.bestColumn = bColumn;
+    }
+
+    /*
+     * profile[column] = the score of base a against seqB[column - 1]
+     */
+    private int[] profile(char a, char[] seqB, int cols, int[] reuse) {
+        int[] profile = null != reuse ? reuse : new int[cols];
+        for (int column = 1; column < cols; column++) {
+            profile[column] = a == seqB[column - 1] ? matchScore : mismatchScore;
+        }
+        return profile;
     }
 
     private void fillMatrix() {
@@ -67,60 +178,55 @@ public class SmithWatermanGotoh {
 //				dynamic programming algorithm and designated here Pij and Qij depend only on the values in the 
 //				current and previous row and column, as indicated below.
 
-        initialize();
+        final int cols = columns;
+        final byte[] pointers = new byte[rows * cols];
+        final char[] seqA = sequenceA;
+        final char[] seqB = sequenceB;
+        final float open = gapOpen;
+        final float extend = gapExtend;
 
         //storage for current calculations
-        float[] bestScores = new float[columns];//score if xi aligns to gap after yi
-        float[] queryGapScores = new float[columns];//best score of alignment x1..xi to y1..yi
-
-        for (int i = 0; i < columns; i++) {
-            queryGapScores[i] = Float.NEGATIVE_INFINITY;
-            bestScores[i] = 0;
-        }
-
-        float currentAnchorGapScore;// score if yi aligns to a gap after xi
-        float totalSimilarityScore;
-        float bestScoreDiagonal;
+        float[] bestScores = new float[cols];//score if xi aligns to gap after yi
+        float[] queryGapScores = new float[cols];//best score of alignment x1..xi to y1..yi
+        Arrays.fill(queryGapScores, Float.NEGATIVE_INFINITY);
 
         //keep track of highest score for traceback
-        bestRow = 0;
-        bestColumn = 0;
+        int bRow = 0;
+        int bColumn = 0;
         float bestScore = Float.NEGATIVE_INFINITY;
 
-        float simScore, queryGapExtendScore, queryGapOpenScore, referenceGapExtendScore, referenceGapOpenScore;
-
         for (int row = 1; row < rows; row++) {
-            currentAnchorGapScore = Float.NEGATIVE_INFINITY;
-            bestScoreDiagonal = bestScores[0];
-            for (int column = 1; column < columns; column++) {
-                simScore = findSimilarity(row, column);
-                totalSimilarityScore = bestScoreDiagonal + simScore;
+            float currentAnchorGapScore = Float.NEGATIVE_INFINITY;// score if yi aligns to a gap after xi
+            float bestScoreDiagonal = bestScores[0];
+            final char a = seqA[row - 1];
+            final int rowOffset = row * cols;
+
+            for (int column = 1; column < cols; column++) {
+                final int idx = rowOffset + column;
+                float totalSimilarityScore = bestScoreDiagonal + (a == seqB[column - 1] ? matchScore : mismatchScore);
 
                 //calculate vertical/sequenceA gaps
-                queryGapExtendScore = queryGapScores[column] - gapExtend;
-                queryGapOpenScore = bestScores[column] - gapOpen;
+                float queryGapExtendScore = queryGapScores[column] - extend;
+                float queryGapOpenScore = bestScores[column] - open;
 
+                byte flags = 0;
                 if (queryGapExtendScore > queryGapOpenScore) {
-                    //add extend score
+                    //add extend score, and increase size of gap
                     queryGapScores[column] = queryGapExtendScore;
-                    //increase size of gap
-                    int gapLength = verticalGaps[row - 1][column] + 1;
-                    verticalGaps[row][column] = (short) gapLength;
+                    flags = VERTICAL_GAP_EXTENDED;
                 } else {
                     //add open score
                     queryGapScores[column] = queryGapOpenScore;
                 }
 
                 //calculate horizontal gaps
-                referenceGapExtendScore = currentAnchorGapScore - gapExtend;
-                referenceGapOpenScore = bestScores[column - 1] - gapOpen;
+                float referenceGapExtendScore = currentAnchorGapScore - extend;
+                float referenceGapOpenScore = bestScores[column - 1] - open;
 
                 if (referenceGapExtendScore > referenceGapOpenScore) {
-                    //add extend score
+                    //add extend score, and increase size of gap
                     currentAnchorGapScore = referenceGapExtendScore;
-                    //increase size of gap
-                    short gapLength = (short) (horizontalGaps[row][column - 1] + 1);
-                    horizontalGaps[row][column] = gapLength;
+                    flags |= HORIZONTAL_GAP_EXTENDED;
                 } else {
                     //add open score
                     currentAnchorGapScore = referenceGapOpenScore;
@@ -128,83 +234,84 @@ public class SmithWatermanGotoh {
 
                 //test scores
                 bestScoreDiagonal = bestScores[column];
-                bestScores[column] = findMaximum(totalSimilarityScore, queryGapScores[column], currentAnchorGapScore);
+                float queryGapScore = queryGapScores[column];
+                float score = findMaximum(totalSimilarityScore, queryGapScore, currentAnchorGapScore);
+                bestScores[column] = score;
 
                 //determine trackback direction
-                float score = bestScores[column];
+                byte direction;
                 if (score == 0) {
-                    pointerMatrix[row][column] = STOP;
+                    direction = STOP;
                 } else if (score == totalSimilarityScore) {
-                    pointerMatrix[row][column] = DIAGONAL;
-                } else if (score == queryGapScores[column]) {
-                    pointerMatrix[row][column] = UP;
+                    direction = DIAGONAL;
+                } else if (score == queryGapScore) {
+                    direction = UP;
                 } else {
-                    pointerMatrix[row][column] = LEFT;
+                    direction = LEFT;
                 }
+                pointers[idx] = (byte) (direction | flags);
 
                 //set current cell if this is the best score
                 if (score > bestScore) {
-                    bestRow = row;
-                    bestColumn = column;
+                    bRow = row;
+                    bColumn = column;
                     bestScore = score;
                 }
             }
         }
-    }
-
-    private void initialize() {
-        pointerMatrix = new byte[rows][columns];
-        verticalGaps = new short[rows][columns];
-        horizontalGaps = new short[rows][columns];
-        for (int row = 0; row < rows; row++) {
-            Arrays.fill(verticalGaps[row], ONE);
-            Arrays.fill(horizontalGaps[row], ONE);
-        }
+        this.pointerMatrix = pointers;
+        this.bestRow = bRow;
+        this.bestColumn = bColumn;
     }
 
     public String[] traceback() {
-        StringBuilder alignmentA = new StringBuilder();
-        StringBuilder gapString = new StringBuilder();
-        StringBuilder alignmentB = new StringBuilder();
+        /*
+         * the alignment can be at most (sequenceA length + sequenceB length) long
+         * build it backwards into char arrays and then create the strings
+         */
+        int capacity = sequenceA.length + sequenceB.length;
+        char[] alignmentA = new char[capacity];
+        char[] gapString = new char[capacity];
+        char[] alignmentB = new char[capacity];
+        int pos = capacity;
 
         int rs = bestRow;
         int cs = bestColumn;
 
         boolean run = true;
         while (run) {
-            switch (pointerMatrix[rs][cs]) {
+            int idx = rs * columns + cs;
+            switch (pointerMatrix[idx] & DIRECTION_MASK) {
                 case LEFT:
 
                     //horizontal gap
-                    int hEnd = horizontalGaps[rs][cs];
+                    int hEnd = gapLength(idx, 1, HORIZONTAL_GAP_EXTENDED);
                     for (int i = 0; i < hEnd; i++) {
-                        alignmentA.append(GAP);
-                        gapString.append(EMPTY);
-                        alignmentB.append(sequenceB.charAt(--cs)).append(TAB);
+                        pos--;
+                        alignmentA[pos] = GAP;
+                        gapString[pos] = EMPTY;
+                        alignmentB[pos] = sequenceB[--cs];
                     }
                     break;
 
                 case DIAGONAL:
 
-                    char a = sequenceA.charAt(--rs);
-                    char b = sequenceB.charAt(--cs);
-                    alignmentA.append(a).append(TAB);
-                    alignmentB.append(b).append(TAB);
-                    if (a == b) {
-                        gapString.append(MATCH);
-                    } else {
-                        gapString.append(MISMATCH);
-                    }
-
+                    char a = sequenceA[--rs];
+                    char b = sequenceB[--cs];
+                    pos--;
+                    alignmentA[pos] = a;
+                    alignmentB[pos] = b;
+                    gapString[pos] = a == b ? MATCH : MISMATCH;
                     break;
 
                 case UP:
                     //vertical gap
-                    int vEnd = verticalGaps[rs][cs];
+                    int vEnd = gapLength(idx, columns, VERTICAL_GAP_EXTENDED);
                     for (int i = 0; i < vEnd; i++) {
-                        alignmentB.append(GAP);
-                        gapString.append(EMPTY);
-                        alignmentA.append(sequenceA.charAt(--rs)).append(TAB);
+                        pos--;
+                        alignmentB[pos] = GAP;
+                        gapString[pos] = EMPTY;
+                        alignmentA[pos] = sequenceA[--rs];
                     }
                     break;
 
@@ -215,17 +322,23 @@ public class SmithWatermanGotoh {
                     break;
             }
         }
-        return new String[]{alignmentA.reverse().toString(), gapString.reverse().toString(), alignmentB.reverse().toString()};
+        int length = capacity - pos;
+        return new String[]{new String(alignmentA, pos, length), new String(gapString, pos, length), new String(alignmentB, pos, length)};
     }
 
-    private int findSimilarity(int row, int column) {
-        if (sequenceA.charAt(row - 1) == sequenceB.charAt(column - 1)) {
-            return matchScore;
+    /*
+     * Length of the gap ending at idx: 1 + the number of consecutive cells (stepping back by step) that have the extended flag set
+     */
+    private int gapLength(int idx, int step, byte extendedFlag) {
+        int length = 1;
+        while ((pointerMatrix[idx] & extendedFlag) != 0) {
+            length++;
+            idx -= step;
         }
-        return mismatchScore;
+        return length;
     }
 
-    private float findMaximum(float valueA, float valueB, float valueC) {
+    private static float findMaximum(float valueA, float valueB, float valueC) {
         if (valueA <= 0 && valueB <= 0 && valueC <= 0) {
             return 0;
         }
