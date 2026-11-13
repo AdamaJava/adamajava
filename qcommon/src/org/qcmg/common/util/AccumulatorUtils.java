@@ -241,36 +241,51 @@ public class AccumulatorUtils {
      *
      */
     public static long convertStrandEORBaseQualAndPositionToLong(boolean forwardStrand, boolean endOfRead, byte base, byte quality, int position) {
+        return encodeBase(encodeReadBits(forwardStrand, position), endOfRead, base, quality);
+    }
 
-        long l = 0;
-        if (forwardStrand) {
-            l |= STRAND_BIT;
-        }
+    /*
+     * base bit for each possible byte value - only A, C, G and T have a bit set
+     */
+    private static final long[] BASE_BITS = new long[256];
+    static {
+        BASE_BITS[Accumulator.A_BYTE] = A_BASE_BIT;
+        BASE_BITS[Accumulator.C_BYTE] = C_BASE_BIT;
+        BASE_BITS[Accumulator.G_BYTE] = G_BASE_BIT;
+        BASE_BITS[Accumulator.T_BYTE] = T_BASE_BIT;
+    }
 
-        if (endOfRead) {
-            l |= END_OF_READ_BIT;
-        }
-        switch (base) {
-            case Accumulator.A_BYTE:
-                l |= A_BASE_BIT;
-                break;
-            case Accumulator.C_BYTE:
-                l |= C_BASE_BIT;
-                break;
-            case Accumulator.G_BYTE:
-                l |= G_BASE_BIT;
-                break;
-            case Accumulator.T_BYTE:
-                l |= T_BASE_BIT;
-                break;
-            default: // don't set any of the positions
-                break;
-        }
+    /**
+     * Returns the parts of the encoded long (see {@link #convertStrandEORBaseQualAndPositionToLong(boolean, boolean, byte, byte, int)})
+     * that are the same for every base in a read, so that they can be calculated once per read rather than once per base.
+     * Pass the result to {@link #encodeBase(long, boolean, byte, byte)} to get the encoded long for each base.
+     *
+     * @param forwardStrand
+     * @param position the read start position (alignment end for reverse strand reads)
+     * @return
+     */
+    public static long encodeReadBits(boolean forwardStrand, int position) {
+        /*
+         * the fields occupy disjoint bits, so adding them is the same as or-ing them,
+         * and remains identical to the original encoding if position or quality are ever negative
+         */
+        return (forwardStrand ? STRAND_BIT : 0L) + position;
+    }
 
-        l += (long) quality << QUALITY_BIT_POSITION;
-        l += position;
-
-        return l;
+    /**
+     * Adds the per-base fields to the per-read bits returned by {@link #encodeReadBits(boolean, int)}
+     *
+     * @param readBits
+     * @param endOfRead
+     * @param base
+     * @param quality
+     * @return
+     */
+    public static long encodeBase(long readBits, boolean endOfRead, byte base, byte quality) {
+        return readBits
+                + (endOfRead ? END_OF_READ_BIT : 0L)
+                + BASE_BITS[base & 0xFF]
+                + ((long) quality << QUALITY_BIT_POSITION);
     }
 
     /**
@@ -615,19 +630,22 @@ public class AccumulatorUtils {
     }
 
 
+    /*
+     * passesInitialCheck is called for every covered position, so uses an int bit mask rather than a BitSet to avoid allocations
+     */
     public static boolean passesInitialCheck(Accumulator acc1, Accumulator acc2, char ref) {
 
-        BitSet bs1 = getUniqueBases(acc1);
-        if (doesBitSetContainMoreThan1True(bs1)) {
+        int mask1 = getUniqueBasesMask(acc1);
+        if (containsMoreThanOneBase(mask1)) {
             return true;
         }
 
-        BitSet bs2 = getUniqueBases(acc2);
-        if (doesBitSetContainMoreThan1True(bs2)) {
+        int mask2 = getUniqueBasesMask(acc2);
+        if (containsMoreThanOneBase(mask2)) {
             return true;
         }
 
-        if (!doBitSetsHaveSameBitsSet(bs1, bs2)) {
+        if (mask1 != mask2) {
             return true;
         }
 
@@ -635,38 +653,59 @@ public class AccumulatorUtils {
          * we are here if both accumulators represent the same single base
          * if this base is the same as the reference, its dead to us
          */
-        if (Character.isLowerCase(ref)) {
-            ref = Character.toUpperCase(ref);
-        }
-
-        return switch (ref) {
-            case Accumulator.A_CHAR -> !bs1.get(A_POSITION);
-            case Accumulator.C_CHAR -> !bs1.get(C_POSITION);
-            case Accumulator.G_CHAR -> !bs1.get(G_POSITION);
-            case Accumulator.T_CHAR -> !bs1.get(T_POSITION);
-            default -> false;
-        };
+        return isRefNotInMask(mask1, ref);
     }
 
     public static boolean passesInitialCheck(Accumulator acc, char ref) {
-        BitSet bs = getUniqueBases(acc);
-        if (doesBitSetContainMoreThan1True(bs)) {
+        int mask = getUniqueBasesMask(acc);
+        if (containsMoreThanOneBase(mask)) {
             return true;
         }
 
         /*
-         * we are here if both accumulators represent the same single base
+         * we are here if the accumulator represents a single base
          * if this base is the same as the reference, its dead to us
          */
-        if (Character.isLowerCase(ref)) {
-            ref = Character.toUpperCase(ref);
-        }
+        return isRefNotInMask(mask, ref);
+    }
 
-        return switch (ref) {
-            case Accumulator.A_CHAR -> !bs.get(A_POSITION);
-            case Accumulator.C_CHAR -> !bs.get(C_POSITION);
-            case Accumulator.G_CHAR -> !bs.get(G_POSITION);
-            case Accumulator.T_CHAR -> !bs.get(T_POSITION);
+    /**
+     * Returns an int bit mask of the bases seen in this Accumulator, using the same bit positions as {@link #getUniqueBases(Accumulator)}.
+     * Stops looking as soon as more than one base has been seen, so the returned mask is only complete if it contains 0 or 1 bases.
+     */
+    static int getUniqueBasesMask(Accumulator acc) {
+        int mask = 0;
+        if (null != acc && acc.getCoverage() > 0) {
+            long[] data = acc.getDataArray();
+            for (int i = 1, len = acc.getDataSize(); i < len; i += 2) {
+                long l = data[i];
+                if ((l & A_BASE_BIT) != 0) {
+                    mask |= 1 << A_POSITION;
+                } else if ((l & C_BASE_BIT) != 0) {
+                    mask |= 1 << C_POSITION;
+                } else if ((l & G_BASE_BIT) != 0) {
+                    mask |= 1 << G_POSITION;
+                } else if ((l & T_BASE_BIT) != 0) {
+                    mask |= 1 << T_POSITION;
+                }
+                if (containsMoreThanOneBase(mask)) {
+                    break;
+                }
+            }
+        }
+        return mask;
+    }
+
+    private static boolean containsMoreThanOneBase(int mask) {
+        return (mask & (mask - 1)) != 0;
+    }
+
+    private static boolean isRefNotInMask(int mask, char ref) {
+        return switch (Character.toUpperCase(ref)) {
+            case Accumulator.A_CHAR -> (mask & (1 << A_POSITION)) == 0;
+            case Accumulator.C_CHAR -> (mask & (1 << C_POSITION)) == 0;
+            case Accumulator.G_CHAR -> (mask & (1 << G_POSITION)) == 0;
+            case Accumulator.T_CHAR -> (mask & (1 << T_POSITION)) == 0;
             default -> false;
         };
     }
@@ -687,16 +726,15 @@ public class AccumulatorUtils {
 
     public static int[] getTotalQualityByStrand(Accumulator acc) {
         if (null != acc) {
-            TLongList list = acc.getData();
+            long[] data = acc.getDataArray();
             int qualTallyFS = 0;
             int qualTallyRS = 0;
-            if (null != list) {
-                for (int i = 1, len = list.size(); i < len; i += 2) {
-                    if (((list.get(i) >>> STRAND_BIT_POSITION) & 1) == 1) {
-                        qualTallyFS += getQualityFromLong(list.get(i));
-                    } else {
-                        qualTallyRS += getQualityFromLong(list.get(i));
-                    }
+            for (int i = 1, len = acc.getDataSize(); i < len; i += 2) {
+                long l = data[i];
+                if (((l >>> STRAND_BIT_POSITION) & 1) == 1) {
+                    qualTallyFS += getQualityFromLong(l);
+                } else {
+                    qualTallyRS += getQualityFromLong(l);
                 }
             }
             return new int[]{qualTallyFS, qualTallyRS};
@@ -719,22 +757,21 @@ public class AccumulatorUtils {
 
     public static int[] getCountAndEndOfReadByStrand(Accumulator acc) {
         if (null != acc) {
-            TLongList list = acc.getData();
+            long[] data = acc.getDataArray();
             int eorTallyFS = 0;
             int eorTallyRS = 0;
             int fsCount = 0, rsCount = 0;
-            if (null != list) {
-                for (int i = 1, len = list.size(); i < len; i += 2) {
-                    if (((list.get(i) >>> STRAND_BIT_POSITION) & 1) == 1) {
-                        fsCount++;
-                        if ((list.get(i) & END_OF_READ_BIT) != 0) {
-                            eorTallyFS++;
-                        }
-                    } else {
-                        rsCount++;
-                        if ((list.get(i) & END_OF_READ_BIT) != 0) {
-                            eorTallyRS++;
-                        }
+            for (int i = 1, len = acc.getDataSize(); i < len; i += 2) {
+                long l = data[i];
+                if (((l >>> STRAND_BIT_POSITION) & 1) == 1) {
+                    fsCount++;
+                    if ((l & END_OF_READ_BIT) != 0) {
+                        eorTallyFS++;
+                    }
+                } else {
+                    rsCount++;
+                    if ((l & END_OF_READ_BIT) != 0) {
+                        eorTallyRS++;
                     }
                 }
             }
@@ -745,31 +782,29 @@ public class AccumulatorUtils {
 
     public static int[] getBaseCountByStrand(Accumulator acc) {
         if (null != acc) {
-            TLongList list = acc.getData();
-            if (null != list) {
-                int[] baseCountByStrand = new int[8];
-                for (int i = 1, len = list.size(); i < len; i += 2) {
-                    boolean fs = ((list.get(i) >>> STRAND_BIT_POSITION) & 1) == 1;
-                    char c = getBaseAsCharFromLong(list.get(i));
-                    switch (c) {
-                        case 'A':
-                            baseCountByStrand[fs ? A_FS_POSITION : A_RS_POSITION]++;
-                            break;
-                        case 'C':
-                            baseCountByStrand[fs ? C_FS_POSITION : C_RS_POSITION]++;
-                            break;
-                        case 'G':
-                            baseCountByStrand[fs ? G_FS_POSITION : G_RS_POSITION]++;
-                            break;
-                        case 'T':
-                            baseCountByStrand[fs ? T_FS_POSITION : T_RS_POSITION]++;
-                            break;
-                        default: /* do nothing */
-                            break;
-                    }
+            long[] data = acc.getDataArray();
+            int[] baseCountByStrand = new int[8];
+            for (int i = 1, len = acc.getDataSize(); i < len; i += 2) {
+                boolean fs = ((data[i] >>> STRAND_BIT_POSITION) & 1) == 1;
+                char c = getBaseAsCharFromLong(data[i]);
+                switch (c) {
+                    case 'A':
+                        baseCountByStrand[fs ? A_FS_POSITION : A_RS_POSITION]++;
+                        break;
+                    case 'C':
+                        baseCountByStrand[fs ? C_FS_POSITION : C_RS_POSITION]++;
+                        break;
+                    case 'G':
+                        baseCountByStrand[fs ? G_FS_POSITION : G_RS_POSITION]++;
+                        break;
+                    case 'T':
+                        baseCountByStrand[fs ? T_FS_POSITION : T_RS_POSITION]++;
+                        break;
+                    default: /* do nothing */
+                        break;
                 }
-                return baseCountByStrand;
             }
+            return baseCountByStrand;
         }
         return new int[8];
     }
@@ -889,29 +924,27 @@ public class AccumulatorUtils {
     public static TCharObjectMap<int[]> getAccumulatorDataByBase(Accumulator acc) {
         TCharObjectMap<int[]> map = new TCharObjectHashMap<>(8);
         if (null != acc) {
-            TLongList data = acc.getData();
-            if (null != data) {
-                for (int i = 1, len = data.size(); i < len; i += 2) {
-                    long l = data.get(i);
-                    char base = getBaseAsCharFromLong(l);
-                    int[] baseData = map.get(base);
-                    if (null == baseData) {
-                        baseData = new int[6];
-                        map.put(base, baseData);
-                    }
+            long[] data = acc.getDataArray();
+            for (int i = 1, len = acc.getDataSize(); i < len; i += 2) {
+                long l = data[i];
+                char base = getBaseAsCharFromLong(l);
+                int[] baseData = map.get(base);
+                if (null == baseData) {
+                    baseData = new int[6];
+                    map.put(base, baseData);
+                }
 
-                    byte qual = getQualityFromLong(l);
-                    boolean endOfRead = (l & END_OF_READ_BIT) != 0;
+                byte qual = getQualityFromLong(l);
+                boolean endOfRead = (l & END_OF_READ_BIT) != 0;
 
-                    if ((l & STRAND_BIT) != 0) {
-                        baseData[FORWARD_STRAND_COUNT]++;
-                        baseData[FORWARD_STRAND_QUALITY] += qual;
-                        if (endOfRead) baseData[FORWARD_STRAND_END_OF_READ_COUNT]++;
-                    } else {
-                        baseData[REVERSE_STRAND_COUNT]++;
-                        baseData[REVERSE_STRAND_QUALITY] += qual;
-                        if (endOfRead) baseData[REVERSE_STRAND_END_OF_READ_COUNT]++;
-                    }
+                if ((l & STRAND_BIT) != 0) {
+                    baseData[FORWARD_STRAND_COUNT]++;
+                    baseData[FORWARD_STRAND_QUALITY] += qual;
+                    if (endOfRead) baseData[FORWARD_STRAND_END_OF_READ_COUNT]++;
+                } else {
+                    baseData[REVERSE_STRAND_COUNT]++;
+                    baseData[REVERSE_STRAND_QUALITY] += qual;
+                    if (endOfRead) baseData[REVERSE_STRAND_END_OF_READ_COUNT]++;
                 }
             }
         }
@@ -925,11 +958,11 @@ public class AccumulatorUtils {
      */
     public static int getNovelStartsForBase(Accumulator acc, char novelStartsBase) {
         if (null != acc) {
-            TLongList data = acc.getData();
+            long[] data = acc.getDataArray();
             TIntSet fsStartPositions = new TIntHashSet();
             TIntSet rsStartPositions = new TIntHashSet();
-            for (int i = 1, len = data.size(); i < len; i += 2) {
-                long l = data.get(i);
+            for (int i = 1, len = acc.getDataSize(); i < len; i += 2) {
+                long l = data[i];
                 char base = getBaseAsCharFromLong(l);
                 if (base == novelStartsBase) {
                     if ((l & STRAND_BIT) != 0) {
