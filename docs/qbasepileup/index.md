@@ -51,6 +51,8 @@ Option                   Description
 --dup                    Opt (indel and snp mode), a flag to include duplicates reads.                           
 -f [format]              Opt(snp mode) snp file format: [dcc1, dccq, vcf, tab, maf].Def=dcc1. or                 
                          Opt(coverage mode), snp file format: [dcc1, dccq, vcf, tab, maf, gff3, gtf]. Def=dcc1.  
+                         Req(compoundsnp mode), must be "-f dcc1".
+                         Req(snpcheck mode), must be "-f maf".
 --filter <query>         Opt, a qbamfilter query to filter out BAM records. Def=null.                            
 --gatk                   Opt (indel mode), a flag to conform gatk format, but do nothing.                        
 -h, --help               Shows this help message.                                                                
@@ -69,14 +71,15 @@ Option                   Description
 --mincov <Integer>       Opt, report reads that are less than the mininmum coverage option.                      
 --mq <Integer>           Opt (snp related mode), minimum mapping quality score for accepting a read. Def = null. 
 -n <Integer>             Opt (indel mode), bases around indel to check for other indels. Def=3.                  
---novelstarts <y|n>      Opt (snp related mode), report novelstarts rather than read count [Y,N], Def=y.         
+--novelstarts <y|n>      Opt (snp related mode), report novelstarts rather than read count [Y,N], Def=n.         
 -o <txt file>            Req (coverage and snp related mode), the output file path.                              
 --of <format>            Opt (snp mode only), output file format [columns]. this option only works with input snp
                            file format is tab, otherwise it will ignored.                                        
 --og <dcc1>              Req (indel mode), output file for germline indels.                                      
 --os <dcc1>              Req (indel mode), output file for somatic indels.                                       
 -p [profile]             Opt (snp mode), pileup profile type [torrent,RNA,DNA, standard]. Def="standard".        
---pd <pindel_deletions>  Req (indel mode), path to normal bam file                                               
+--pd <pindel_deletions>  Opt (indel mode), path to a pindel deletions output file. The file is read but currently
+                           has no effect on the output.
 --pindel                 Opt (indel mode), a flag to conform pindel format, but do nothing.                      
 -r <fasta file>          Req (indel and snp mode), path to reference genome fasta file.                          
 -s <txt file>            Req (coverage and snp mode), path to tab delimited file containing snps.                
@@ -102,7 +105,7 @@ as well as the bases found at that position in all reads aligned to that
 region. Coverage per nucleotide is reported and the total coverage at that
 position is reported. By default, duplicates and unmapped reads are excluded.
 
-### [compoundsnp](qbasepileup_compound_snp_mode)
+### compoundsnp
 ```diff
 -This mode is deprecated due to the input snp position file format (dcc1) is no longer available!
 ```
@@ -120,9 +123,14 @@ reads in and out of a particular analysis, see[qbamfilter](../qbamfilter/).
 
 This mode is for compound SNPs, is very similar to [snp mode](qbasepileup_snp_mode.md) except:
 
-* Only dcc1 format (`-f`) is currently accepted
+* Only dcc1 format is accepted and it must be given explicitly with `-f dcc1`
 * Default filter is: `and(Flag_DuplicateRead==false, CIGAR_M>34, MD_mismatch<=3, option_SM>10)`
 
+
+### snpcheck
+
+Like snp mode, but the SNP positions file must be in MAF format and this
+must be given explicitly with `-f maf`.
 
 ### [indel](qbasepileup_indel_mode)
 ```diff
@@ -154,13 +162,13 @@ qbasepileup -t 2 -m indel -r reference.fa --pindel \
 * Somatic input file in gatk format
 ~~~~{.text}
 qbasepileup -t 2 -m indel --it tumour.bam --in normal.bam \
-    --is somatic.input.dcc1 --os somatic.output.dcc1 
+    --is somatic.input.dcc1 --os somatic.output.dcc1 \
     --log basepileup.log -r reference.fa --gatk
 ~~~~
 
 * Germline input file in pindel format
 ~~~~{.text}
 qbasepileup -t 2 -m indel --it tumour.bam --in normal.bam \
-    --ig germline.input.dcc1 --og germline.output.dcc1
+    --ig germline.input.dcc1 --og germline.output.dcc1 \
     --log basepileup.log -r reference.fa --pindel
 ~~~~

@@ -1,5 +1,8 @@
 # qmotif v1.0
 
+> **Note:** this page documents an old release of qmotif (distributed via SourceForge) and its command line options differ from the current version. For the current version see [qmotif](qmotif).
+
+
 `qmotif` runs against a BAM file searching for user specified nucleotide 
 motifs.
 qmotif was created to search for reads that contained canonical

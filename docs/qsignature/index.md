@@ -33,10 +33,10 @@ qsignature requires java 21.
 
 ## Usage
 
-qsignature modes are invoked by directly naming the class that is to be executed as can be seen in the example below:
+qsignature modes are invoked by directly naming the class that is to be executed, with the jars in `qsignature/build/flat` on the classpath (`java -jar` does not work, as the jar has no usable main class), as can be seen in the example below:
 
 ~~~~{.text}
-java -cp qsignature.jar org.qcmg.sig.Generate -snpPositions <file containing positions of interest> -input <input BAM file> -output <output directory where qsig.vcf files will be generated> -log <log file>
+java -cp "qsignature/build/flat/*" org.qcmg.sig.Generate -snpPositions <file containing positions of interest> -input <input BAM file> -d <output directory where qsig.vcf.gz files will be generated> -log <log file>
 
 ~~~~
 
@@ -46,3 +46,14 @@ Mode | Description
 -----| -----------
 [`Generate`](qsignature_signature_generator_bespoke_mode.md) | Generates a compressed VCF file (.qsig.vcf.gz) for a BAM or snp chip file
 [`Compare`](qsignature_compare_mode.md) | Compares all of the qsig.vcf.gz files in a specified folder to ascertain whether there is a potential mixup
+
+Other entry points in the `org.qcmg.sig` package (run the same way, with `java -cp "qsignature/build/flat/*" org.qcmg.sig.<Class>`):
+
+Class | Description
+-----| -----------
+`CompareRG` | Compares the read groups within each bam.qsig.vcf file found in the supplied path (no cross-file comparisons) and writes an XML file
+`CompareGenotypeBespoke` | Compares all .qsig.vcf files in the supplied path, including old and new style files, and can email a list of comparisons scoring below the cutoff
+`CompareIlluminaData` | Compares two Illumina snp chip files, reporting A allele percentage concordance in the log file
+`VcfProfiler` | Profiles a qsignature generated VCF file to help characterise the underlying input
+`PositionsProfiler` | Reports some stats on the qsignature positions file
+`VcfAddGeneModel` | Adds gene model information to the INFO field of a VCF file (e.g. a snp positions file)

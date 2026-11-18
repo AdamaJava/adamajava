@@ -1,5 +1,7 @@
 # qmotif (github version)
 
+> **Note:** the main, maintained qmotif page is [qmotif](qmotif). This page covers the same (current) version.
+
 `qmotif` searches BAM sequencing records for user-specified nucleotide 
 motifs. It 
 produces a detailed XML output file outlining the types and counts of 
@@ -17,7 +19,16 @@ and degenerate forms of the telomeric TTAGGG repeat.
 ## Installation
 
 qmotif requires java 21 and (ideally) a multicore machine with at least 
-20GB of RAM.  To install, follow the instructions on the github project page: https://github.com/AdamaJava/adamajava/tree/master/qmotif
+20GB of RAM.  To build it, clone the adamajava repository and run gradle:
+
+~~~~{.text}
+git clone https://github.com/AdamaJava/adamajava
+cd adamajava
+./gradlew :qmotif:build
+~~~~
+
+This creates the qmotif jar file along with its dependent jar files in the
+`qmotif/build/flat` folder.
 
 
 ## Usage
@@ -29,9 +40,9 @@ java -Xmx20g -jar qmotif.jar \
     --input-bai /mydata/bamFile.bam.bai \
     --log /mydata/bamFile.bam.qmotif.log \
     --loglevel DEBUG \
-    -ini /mydata/qmotif.ini \
-    -output-xml /mydata/bamFile.bam.qmotif.xml \
-    -output-bam /mydata/bamFile.telomere.bam
+    --ini /mydata/qmotif.ini \
+    --output-xml /mydata/bamFile.bam.qmotif.xml \
+    --output-bam /mydata/bamFile.telomere.bam
 ~~~~
 
 ## Options
@@ -48,6 +59,10 @@ The following command line options are supported:
 | threads        | No       | Number of threads to use when running qmotif. Defaults to 1.|
 | output-xml        | Yes      | Output XML file containing the motifs found and the regions they were found in.|
 | output-bam        | Yes      | Output BAM file containing the reads that matched the stage1 search regex/string  |
+| query        | No       | Query string (qbamfilter syntax) for selecting which reads are considered.|
+| validation        | No       | BAM record validation stringency [STRICT, LENIENT, SILENT]. Defaults to LENIENT.|
+| version        | No       | Show version number.|
+| h, help        | No       | Show usage and help.|
 
 ## Config file
 
@@ -104,7 +119,7 @@ This table shows the parameters that can be specified in `[PARAMS]` :
 | stage2_motif_regex     | (...GGG){2,}&vert;(CCC...){2,}   | As per `stage1_motif_regex` but for the second stage matching.                                                                                                                                                                                                 |
 | stage1_string_rev_comp | true                             | If this parameter is set to true then the reverse complement is also matched for any motifs specified in `stage1_motif_string`.  It has no effect if the `_regex` parameters are used so any regex should include the reverse complement if you care about it. |
 | stage2_string_rev_comp | true                             | If this parameter is set to true then the reverse complement is also matched for any motifs specified in `stage2_motif_string`.  It has no effect if the `_regex` parameters are used so any regex should include the reverse complement if you care about it. |
-| window_size            | 10000                            | For GENOMIC regions (see below), this is the size of the windows that are considered for reporting.  If window_size is not specified, the default value is 10000.                                                                                              |
+| window_size            | 10000                            | For GENOMIC regions (see below), this is the size of the windows that are considered for reporting.  Required - there is no default value, and qmotif will fail to run if window_size is not specified.                                                         |
 
 The `_string` and `_regex` parameters are mutually exclusive within a stage,
 i.e. you can set either `stage1_motif_string` or `stage1_motif_regex` but not both.

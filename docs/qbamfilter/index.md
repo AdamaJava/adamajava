@@ -62,7 +62,7 @@ java -jar qbamfilter.jar -q "or( MAPQ > 50, option_ZM == 1 )" -i /path/input.bam
 
 --loglevel              Opt, Logging level [INFO,DEBUG], Def=INFO.
 --filterOut, -f         Opt, BAM file for records that failed --query.
---maxRecordNumber, -m   Opt, BAM record queue size in 1000's, Def=100.
+--maxRecordNumber, -m   Opt, BAM record queue size in 1000's, Def=1000.
 --sort                  Opt, Sort order [queryname,coordinate,unsorted], Def=unsorted.
 --threadNumber, -t      Opt, Filtering thread count, Def=1.
 --tmpdir                Opt, Location of temporary BAM files.
@@ -82,7 +82,8 @@ written.
 ### `--maxRecordNumber`
 
 BAM record queue size during reading and writing. The unit is 1000's
-or records so `--maxRecordNumber=100` allows for a queue of 100,000 records.
+of records so `--maxRecordNumber=100` allows for a queue of 100,000 records.
+The default is 1000, i.e. a queue of 1,000,000 records.
 
 ### `--tmpdir`
 

@@ -11,7 +11,17 @@ clipping (S,H).
 ## Usage
 
 ~~~~{.text}
-qmule org.qcmg.qmule.BamMismatchCounts <bam/sam filename> <output filename>
+java -cp "qmule/build/flat/*" org.qcmg.qmule.BamMismatchCounts -i <bam/sam filename> -o <output filename> [options]
+~~~~
+
+## Options
+
+~~~~{.text}
+--help, -h     Show this help message.
+--input, -i    Req, Input BAM/SAM file.
+--output, -o   Req, Output file for the mismatch tally.
+--log          Opt, Log file. Def=<output filename>.log
+--loglevel     Opt, Log level [EXEC,TOOL,DEBUG,INFO], Def=INFO.
 ~~~~
 
 ## Outputs
@@ -38,7 +48,7 @@ mismatch	reads_number	ratio_to_(fullmapped,total)
 ...
 ~~~~
 
-It automatically creates a log file named <output filename>.log. It extracts below shows a example breakdown of the reads in the BAM.  Of the 999912 reads, 960361 were mapped full-length and so were used to create the mismatch tally.
+Unless `--log` is specified, it automatically creates a log file named <output filename>.log. It extracts below shows a example breakdown of the reads in the BAM.  Of the 999912 reads, 960361 were mapped full-length and so were used to create the mismatch tally.
 
 ~~~~{.text}
 20:04:42.378 [main] INFO org.qcmg.qmule.BamMismatchCounts - total records in file: 999912

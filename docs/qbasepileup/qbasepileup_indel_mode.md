@@ -26,7 +26,7 @@ Option order is arbitrary.
 --version   Show version.
 
 --log       Required. Path to log file.
---mode      Required. Specify "indel"
+-m          Required. Specify "indel"
 --it        Required. Path to tumour bam file
 --in        Required. Path to normal bam file.
 --r         Required. Path to reference genome
@@ -41,9 +41,10 @@ Option order is arbitrary.
 --sc        Optional. Window of reference bases either side of indel to look for soft clipping. Default 13
 --hp        Optional. Window of reference bases either side of indel to look for homopolymer. Default 10
 --n         Optional. Window of reference bases either side of indel to look for other indels. Default 3
---strelka   Optional. Strelka file type
---pindel    Optional. Pindel file type. Is default.
---gatk      Optional. GATK file type.
+--strelka   Strelka file type.
+--pindel    Pindel file type.
+--gatk      GATK file type.
+            One of --pindel, --strelka or --gatk is required; there is no default.
 ~~~~
 
 
@@ -68,7 +69,7 @@ qbasepileup -t 2 -m indel -r reference.fa --pindel \
 
 ~~~~{.text}
 qbasepileup -t 2 -m indel --it tumour.bam --in normal.bam \
-    --is somatic.input.dcc1 --os somatic.output.dcc1 
+    --is somatic.input.dcc1 --os somatic.output.dcc1 \
     --log basepileup.log -r reference.fa --gatk
 ~~~~
 
@@ -81,7 +82,7 @@ qbasepileup -t 2 -m indel --it tumour.bam --in normal.bam \
 
 ~~~~{.text}
 qbasepileup -t 2 -m indel --it tumour.bam --in normal.bam \
-    --ig germline.input.dcc1 --og germline.output.dcc1
+    --ig germline.input.dcc1 --og germline.output.dcc1 \
     --log basepileup.log -r reference.fa --pindel
 ~~~~
 

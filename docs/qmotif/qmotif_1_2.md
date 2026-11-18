@@ -1,5 +1,8 @@
 # qmotif v1.2
 
+> **Note:** this page documents an old release of qmotif (distributed via SourceForge) and its command line options differ from the current version. For the current version see [qmotif](qmotif).
+
+
 `qmotif` searches BAM sequencing records for user-specified nucleotide 
 motifs. It 
 produces a detailed XML output file outlining the types and counts of 
@@ -14,7 +17,7 @@ and degenerate forms of the telomeric TTAGGG repeat.
 
 ## Installation
 
-qmotif requires java 21 and (ideally) a multi-core machine with at least 
+qmotif requires java 8 and (ideally) a multi-core machine with at least 
 20GB of RAM.  To install:
 
 * Download the [qmotif tar file](https://sourceforge.net/projects/adamajava/files/qmotif-1.2.tar.bz2/download).

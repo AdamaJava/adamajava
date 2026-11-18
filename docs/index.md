@@ -12,6 +12,10 @@ Cancer Genome Consortium ([ICGC](http://www.icgc.org)).
 The project is being hosted on
 [github](https://github.com/AdamaJava/adamajava).
 
+See the [Introduction](intro.md) for the list of tools released for
+general use, and [Installing adamajava](installing.md) for build
+instructions.
+
 Some related tools have been released as separate projects:
 
 * [qPure](https://sourceforge.net/projects/qpure/?source=directory)

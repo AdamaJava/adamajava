@@ -8,6 +8,7 @@ shows tools that are considered robust enough to be released for general use.
 Most are written in Java and require version 21. Some tools have dependencies
 on other software.
 
+* [qannotate](/qannotate/) - adds annotations to a VCF file, or creates an annotated TSV file from a VCF file
 * [qbamfilter](/qbamfilter/) - filters records from a BAM file
 * [qbasepileup](/qbasepileup/) - base pileups
 * [qcnv](/qcnv/) - a pre-processor for copy number variant (CNV) calling
@@ -17,6 +18,8 @@ on other software.
 * [qmule](/qmule/) - collection of helper modes for NGS
 * [qpileup](/qpileup/) - gathers base-level metrics across a whole genome from a group of BAMs
 * [qprofiler](/qprofiler/) - QC assessment of BAM files using summary statistics
+* [qprofiler2](/qprofiler2/) - summary metrics for BAM, FASTQ and VCF files
 * [qsignature](/qsignature/) - sample mixup detection
 * [qsnp](/qsnp/) - heuristics-based tumour/normal single nucleotide variant (SNV) caller
 * [qsv](/qsv/) - tumour/normal structural variant (SV) caller
+* [qvisualise](/qvisualise/) - creates HTML reports from qprofiler XML reports
