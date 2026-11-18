@@ -1,5 +1,6 @@
 package au.edu.qimr.qmito;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -86,4 +87,30 @@ public class MetricTest {
 	
 	
  
+
+	@Test
+	public void queryOptionIsUsed() throws Exception {
+		String query = "and (flag_NotprimaryAlignment == false, flag_ReadUnmapped == false, flag_DuplicateRead == false)";
+		String[] args = { "--reference", ref, "--input", input, "--output", output, "--log", log, "--query", query };
+		MetricOptions options = new MetricOptions(args);
+		assertEquals(query, options.getQuery());
+	}
+
+	@Test
+	public void mitoNameOptionIsUsed() throws Exception {
+		String[] args = { "--reference", ref, "--input", input, "--output", output, "--log", log, "--mito-name", "chrMT" };
+		MetricOptions options = new MetricOptions(args);
+		assertEquals("chrMT", options.getReferenceRecord().getSequenceName());
+	}
+
+	@Test
+	public void unknownMitoNameIsRejected() {
+		String[] args = { "--reference", ref, "--input", input, "--output", output, "--log", log, "--mito-name", "chrNotThere" };
+		try {
+			new MetricOptions(args);
+			fail("expected an exception for an unknown mito sequence name");
+		} catch (Exception e) {
+			assertTrue(e.getMessage(), e.getMessage().contains("chrNotThere"));
+		}
+	}
 }

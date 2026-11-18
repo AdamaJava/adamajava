@@ -57,7 +57,7 @@ public final class Options {
 		inputBAMFileNames = new String[inputBAMFileNamesList.size()];
 		inputBAMFileNamesList.toArray(inputBAMFileNames);
 
-		List<String> inputBAIFileNamesList = (List<String>) options.valuesOf("output-bai");
+		List<String> inputBAIFileNamesList = (List<String>) options.valuesOf("input-bai");
 		inputBAIFileNames = new String[inputBAIFileNamesList.size()];
 		inputBAIFileNamesList.toArray(inputBAIFileNames);
 
