@@ -7,19 +7,23 @@
 qpileup requires java 21 and (ideally) a multi-core machine. eg. 5 threads with at least 20GB of RAM; 12 threads with at least 30GB and 25 threads with 40GB etc.
 
 * To do a build of qpileup, first clone the adamajava repository.
-  ~~~~{.text}
-  git clone https://github.com/AdamaJava/adamajava
-  ~~~~
+
+~~~~{.text}
+git clone https://github.com/AdamaJava/adamajava
+~~~~
 
 *  Then move into the adamajava folder:
-  ~~~~{.text}
-  cd adamajava
-  ~~~~
+
+~~~~{.text}
+cd adamajava
+~~~~
 
 *  Run gradle to build qpileup and its dependent jar files:
-  ~~~~{.text}
-  ./gradlew :qpileup:build
-  ~~~~
+
+~~~~{.text}
+./gradlew :qpileup:build
+~~~~
+
   This creates the qpileup jar file along with dependent jars in the `qpileup/build/flat` folder
 
 

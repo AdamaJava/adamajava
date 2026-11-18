@@ -110,19 +110,22 @@ LOG=String                    output a log file.  Default value: qsamtofastq.log
 
 ## Examples
   * run in default option value
-  ~~~~{.text}
+
+~~~~{.text}
 java -cp "qmule/build/flat/*" org.qcmg.qmule.bam.QSamToFastq I=test.bam FASTQ=r1.fastq SECOND_END_FASTQ=r2.fastq
-  ~~~~
+~~~~
 
   this command line is same as below
-  ~~~~{.text}
+
+~~~~{.text}
 java -cp "qmule/build/flat/*" org.qcmg.qmule.bam.QSamToFastq INPUT=test.bam FASTQ=r1.fastq SECOND_END_FASTQ=r2.fastq  OUTPUT_PER_RG=false RE_REVERSE=true INCLUDE_NON_PF_READS=false INCLUDE_NON_PRIMARY_ALIGNMENTS=false INCLUDE_SUPPLEMENTARY_READS=false READ1_TRIM=0 READ2_TRIM=0 MARK_MATE=false BASE_NULL_TO_N=true MISS_MATE_RESCUE=true LOG_FILE=qsamtofastq.log
-  ~~~~
+~~~~
 
   Here we use a reversed SAM record as example, it miss first of pair. 
-  ~~~~{.text}
+
+~~~~{.text}
 ST-E00119:628:HFMTKALXX:7:1116:25652:22616	147	chr1	20514631	60	151M	=	20514362	-420	TCTATCAAAAGAAAGTTTCAAGTCTGTGAGTTGAATTGCACACATC	JJ<JFJ<JJJJJJJJFJ-7<FJFJJFJJJJFJJAAJJJJJJJJJJJ
-  ~~~~
+~~~~
   
   output is
 

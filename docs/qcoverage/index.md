@@ -59,19 +59,23 @@ there is always one thread in addition to the number specified with
 
 qcoverage requires java 21 and (ideally) a multi-core machine with at least 20GB of RAM.
 * To do a build of qcoverage, first clone the adamajava repository.
-  ~~~~{.text}
-  git clone https://github.com/AdamaJava/adamajava
-  ~~~~
+
+~~~~{.text}
+git clone https://github.com/AdamaJava/adamajava
+~~~~
 
 *  Then move into the adamajava folder:
-  ~~~~{.text}
-  cd adamajava
-  ~~~~
+
+~~~~{.text}
+cd adamajava
+~~~~
 
 *  Run gradle to build qcoverage and its dependent jar files:
-  ~~~~{.text}
-  ./gradlew :qcoverage:build
-  ~~~~
+
+~~~~{.text}
+./gradlew :qcoverage:build
+~~~~
+
   This creates the qcoverage jar file along with dependent jars in the `qcoverage/build/flat` folder
 
 

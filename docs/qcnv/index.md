@@ -13,19 +13,23 @@ linearly with thread count so using large numbers of threads requires
 large amounts of memory. To install:
 
 * To do a build of qcnv, first clone the adamajava repository.
-  ~~~~{.text}
-  git clone https://github.com/AdamaJava/adamajava
-  ~~~~
+
+~~~~{.text}
+git clone https://github.com/AdamaJava/adamajava
+~~~~
 
 *  Then move into the adamajava folder:
-  ~~~~{.text}
-  cd adamajava
-  ~~~~
+
+~~~~{.text}
+cd adamajava
+~~~~
 
 *  Run gradle to build qcnv and its dependent jar files:
-  ~~~~{.text}
-  ./gradlew :qcnv:build
-  ~~~~
+
+~~~~{.text}
+./gradlew :qcnv:build
+~~~~
+
   This creates the qcnv jar file along with dependent jars in the `qcnv/build/flat` folder
 
 ## Usage

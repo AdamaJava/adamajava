@@ -32,19 +32,23 @@ In this version we was decided to replacing blat with an in-house product, q3Til
 qsv requires java 21, a machine with 8 cores (hyperthreaded) and at least 40GB of RAM.
 
 * To do a build of qsv, first clone the adamajava repository.
-  ~~~~{.text}
-  git clone https://github.com/AdamaJava/adamajava
-  ~~~~
+
+~~~~{.text}
+git clone https://github.com/AdamaJava/adamajava
+~~~~
 
 *  Then move into the adamajava folder:
-  ~~~~{.text}
-  cd adamajava
-  ~~~~
+
+~~~~{.text}
+cd adamajava
+~~~~
 
 *  Run gradle to build qsv and its dependent jar files:
-  ~~~~{.text}
-  ./gradlew :qsv:build
-  ~~~~
+
+~~~~{.text}
+./gradlew :qsv:build
+~~~~
+
   This creates the qsv jar file along with dependent jars in the `qsv/build/flat` folder
 
 ### Usage
