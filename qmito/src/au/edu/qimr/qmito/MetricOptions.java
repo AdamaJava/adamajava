@@ -82,7 +82,7 @@ public class MetricOptions  extends Options {
 
         //check query string format
         if(  options1.has("query")){
-	        query = options1.valueOf("q").toString();                  
+	        query = options1.valueOf("query").toString();                  
 	        checkQuery(query);       	 
         }
         
@@ -109,7 +109,7 @@ public class MetricOptions  extends Options {
         if( ! (new File(referenceFile).exists()))
         	throw new Exception("reference is not exist: " + referenceFile);  
         
-        String ref = options.has("mito-name")? (String) options.valueOf("refname") : defaultRefName;
+        String ref = options.has("mito-name")? (String) options.valueOf("mito-name") : defaultRefName;
         try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(inputBamNames[0])); ) {
         	SAMFileHeader header = reader.getFileHeader().clone();          
             referenceRecord = header.getSequence(header.getSequenceIndex(ref));
