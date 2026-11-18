@@ -74,6 +74,10 @@ public class SummaryMetric {
 	private final TreeMap<Integer, Integer> totalBaseCountMap;
 	private int totalPatients;
 	
+	public String getTmpDir() {
+		return tmpDir;
+	}
+
 	public SummaryMetric(String hdfFileName, String pileupDir, String wiggleDir, String baselineDir, String summaryDir, String tmpDir) {
 		this.hdfName = hdfFileName;
 		this.pileupDir = pileupDir;
