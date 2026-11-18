@@ -151,4 +151,12 @@ public class OptionsIndelTest {
 	
 
 
+
+	@Test
+	public void pindelDeletionsOptionIsAcceptedButNotRead() throws Exception {
+		// --pd is deprecated and has no effect, so a file that doesn't exist is not an error
+		String[] args = {"--log", log, "-it", tumourBam, "-in", normalBam, "-r", reference, "--pindel",
+		"-is", input, "-os", output, "-ig", inputGerm, "-og", outputGerm, "-m", "indel", "--pd", testFolder.getRoot() + FILE_SEPERATOR + "missing.txt"};
+		assertEquals("indel", new Options(args).getMode());
+	}
 }

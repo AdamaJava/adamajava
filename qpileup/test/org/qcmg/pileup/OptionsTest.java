@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class OptionsTest {
@@ -104,6 +105,14 @@ public class OptionsTest {
 		//we don't know the sub folder name of temporaryFolder, have to work around
 		String tmpDir = new File( options.getIniFile()).getParent();
 		assertEquals(tmpDir + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
+	}
+
+	@Test
+	public void metricsTemporaryDirIsPassedToSummaryMetric() throws Exception {
+		Options options = TestUtil.getValidOptions(testFolder, "metrics", reference, hdf, bam, testFolder.getRoot().toString(), "all", null);
+		options.parseIniFile();
+		assertNotNull(options.getTmpDir());
+		assertEquals(options.getTmpDir(), options.getSummaryMetric().getTmpDir());
 	}
 	
 	@Test(expected=QPileupException.class)

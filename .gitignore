@@ -15,3 +15,11 @@ gradle-app.setting
 
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties
+
+# Files written into the module folder by unit tests
+/qannotate/output.log*
+/qbamfix/Test.tmp.bam.bai
+/qbammerge/copied_file.sam
+/qbammerge/logfile
+/qmule/logfile
+/qmule/output.bam.log*

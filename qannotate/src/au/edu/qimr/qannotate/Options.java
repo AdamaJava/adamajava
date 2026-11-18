@@ -184,7 +184,7 @@ public class Options {
         parser.accepts("mrPercentage", "Number of mutant reads (MR) required to be High Confidence as a percentage").withRequiredArg().ofType(Float.class)
                 .describedAs("numberOfMutantReadsPercentage");
         parser.accepts("homWindow", "check for homoplymers inside window size on both sides of variants. Default value is " + HomopolymersMode.DEFAULT_WINDOW).withRequiredArg().ofType(Integer.class).describedAs("homopolymer window size");
-        parser.accepts("homReportWindow", "Cutoff value for number of homoplymer bases within the window. Default value is " + HomopolymersMode.HOMOPOLYMER_CUTOFF).withRequiredArg().ofType(Integer.class).describedAs("homopolymer cutoff value");
+        parser.accepts("homReportWindow", "Number of bases either side of the variant to report. Default value is " + HomopolymersMode.HOMOPOLYMER_CUTOFF).withRequiredArg().ofType(Integer.class).describedAs("homopolymer report window size");
         parser.accepts("homCutoff", "Cutoff value for number of homoplymer bases within the window. Default value is " + IndelConfidenceMode.DEFAULT_HOMN).withRequiredArg().ofType(Integer.class).describedAs("homopolymer cutoff value");
 
         OptionSet options = parser.parse(args);

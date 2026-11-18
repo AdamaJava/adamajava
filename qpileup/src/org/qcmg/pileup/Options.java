@@ -240,6 +240,8 @@ public final class Options {
 				summaryDir.mkdir();		
 				this.snpDir =  new File(outputDir + PileupConstants.FILE_SEPARATOR + pileup + PileupConstants.FILE_SEPARATOR + "snp");
 				snpDir.mkdir();
+				// read before creating the SummaryMetric, which writes its per-chromosome summaries to this folder
+				this.tmpDir = ini.get("metrics").get("temporary_dir");
 				this.summaryMetric = new SummaryMetric(new File(hdfFile).getName(), pileupDir.getAbsolutePath(), wiggleDir.getAbsolutePath(),distributionDir.getAbsolutePath(), summaryDir.getAbsolutePath(), tmpDir);				
 			}
 		}
