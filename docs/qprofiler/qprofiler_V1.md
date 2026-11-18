@@ -10,33 +10,39 @@ While the XML file is useful for extracting values for further analysis, a visua
 qprofiler requires java 21, a machine with multi cores and 5GB of RAM will be ideally.
 
 To do a build of qprofiler, first clone the adamajava repository and move into the adamajava folder.
-  ~~~~{.text}
-  git clone https://github.com/AdamaJava/adamajava
-  cd adamajava
-  git tag
-  ~~~~
+
+~~~~{.text}
+git clone https://github.com/AdamaJava/adamajava
+cd adamajava
+git tag
+~~~~
 
 pick up a release, eg. "internal-7.a8ab31c.12803".
-  ~~~~{.text}
-  git checkout tags/internal-7.a8ab31c.12803
-  ~~~~
+
+~~~~{.text}
+git checkout tags/internal-7.a8ab31c.12803
+~~~~
 
 Run gradle to build qprofiler and its dependent jar files.
-  ~~~~{.text}
-  ./gradlew :qprofiler:build
-  ~~~~
+
+~~~~{.text}
+./gradlew :qprofiler:build
+~~~~
+
 This creates the qprofiler jar file along with dependent jars in the qprofiler/build/flat folder.
 
 ## Usage
 If the release number is before 23.8546a7b, the main jar file name is "qprofiler-1.0.jar".
-  ~~~~{.text}
-  usage: java -jar qprofiler-1.0.jar [option...] -log logfile -loglevel INFO -output outputfile -input inputfile1 -input inputfile2 ... [-ntP 4 -ntC 16] [-exclude coverage,matrices,md,html] [-maxRecords 10000] [-tags XY,XZ,YZ]
-  ~~~~
+
+~~~~{.text}
+usage: java -jar qprofiler-1.0.jar [option...] -log logfile -loglevel INFO -output outputfile -input inputfile1 -input inputfile2 ... [-ntP 4 -ntC 16] [-exclude coverage,matrices,md,html] [-maxRecords 10000] [-tags XY,XZ,YZ]
+~~~~
 
 Release number is 23.8546a7b or after, the main jar file name is "qprofiler.jar".
-  ~~~~{.text}
-  usage: java -jar qprofiler.jar [option...] -log logfile -loglevel INFO -output outputfile -input inputfile1 -input inputfile2 ... [-ntP 4 -ntC 16] [-exclude coverage,matrices,md,html] [-maxRecords 10000] [-tags XY,XZ,YZ]
-  ~~~~
+
+~~~~{.text}
+usage: java -jar qprofiler.jar [option...] -log logfile -loglevel INFO -output outputfile -input inputfile1 -input inputfile2 ... [-ntP 4 -ntC 16] [-exclude coverage,matrices,md,html] [-maxRecords 10000] [-tags XY,XZ,YZ]
+~~~~
 
 The full option list is describe below but there are 3 options that you should probably specify every time you call qprofiler: `--input`, `--output`, and `--log`. If you have access to a multi-core machine (e.g. a compute node on a cluster) then you should also look at the thread-count parameters: `--ntProducer` and `--ntConsumer` if you are processing BAM files.
 

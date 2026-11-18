@@ -33,19 +33,23 @@ You can find the paper [here](http://www.plosone.org/article/info%3Adoi%2F10.137
 qsnp requires java 21 and (ideally) a multi-core machine with at least 20GB of RAM. Whole genome tumour/normal pairs need more - see [Memory and garbage collection](#memory-and-garbage-collection).
 
 * To do a build of qsnp, first clone the adamajava repository.
-  ~~~~{.text}
-  git clone https://github.com/AdamaJava/adamajava
-  ~~~~
+
+~~~~{.text}
+git clone https://github.com/AdamaJava/adamajava
+~~~~
 
 *  Then move into the adamajava folder:
-  ~~~~{.text}
-  cd adamajava
-  ~~~~
+
+~~~~{.text}
+cd adamajava
+~~~~
 
 *  Run gradle to build qsnp and its dependent jar files:
-  ~~~~{.text}
-  ./gradlew :qsnp:build
-  ~~~~
+
+~~~~{.text}
+./gradlew :qsnp:build
+~~~~
+
   This creates the qsnp jar file along with dependent jars in the `qsnp/build/flat` folder
 
 

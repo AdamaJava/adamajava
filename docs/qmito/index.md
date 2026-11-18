@@ -7,19 +7,23 @@
 qmito requires java 21 and Multi-core machine (ideally) and 5G of RAM
 
 * To do a build of qmito, first clone the adamajava repository.
-  ~~~~{.text}
-  git clone https://github.com/AdamaJava/adamajava
-  ~~~~
+
+~~~~{.text}
+git clone https://github.com/AdamaJava/adamajava
+~~~~
 
 *  Then move into the adamajava folder:
-  ~~~~{.text}
-  cd adamajava
-  ~~~~
+
+~~~~{.text}
+cd adamajava
+~~~~
 
 *  Run gradle to build qmito and its dependent jar files:
-  ~~~~{.text}
-  ./gradlew :qmito:build
-  ~~~~
+
+~~~~{.text}
+./gradlew :qmito:build
+~~~~
+
   This creates the qmito jar file along with dependent jars in the `qmito/build/flat` folder
 
 ## Usage 

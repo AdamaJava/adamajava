@@ -70,7 +70,7 @@ Another INI file example:
   * `bam_override=true` means that same BAM (same name and path) allows to add multi times if list multi times. 
   * `Caution: adding BAMs to h5 with different range`. Below example add another BAMs within different range to the hdf from above run. Hence the output will be chaotic, this should rarely be necessary. Copy an output hdf file from bootstrap mode here, will be much relaible. 
 
-~~~
+~~~~
 [general]
 hdf=/path/test.qpileup.h5
 log=/path/test.log
@@ -98,7 +98,7 @@ Without this mode, any case where a BAM was incorrcetly added to an HDF5 file wo
   * In this example default `bam_override=false` is used. 
   * In this example default `loglevel = INFO` is used. 
 
-~~~
+~~~~
 [general]
 hdf=/path/target_109.qpileup.h5
 log=/path/test.log

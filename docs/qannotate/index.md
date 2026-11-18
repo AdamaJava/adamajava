@@ -29,19 +29,23 @@ The modes available to qannotate (the value passed to `--mode`, case-insensitive
 
 `qannotate` requires java 21 and (ideally) a multi-core machine with at least 20GB of RAM.
 * To build `qannotate`, first clone the `adamajava` repository.
-  ~~~~{.text}
-  git clone https://github.com/AdamaJava/adamajava
-  ~~~~
+
+~~~~{.text}
+git clone https://github.com/AdamaJava/adamajava
+~~~~
 
 *  Then move into the `adamajava` folder:
-  ~~~~{.text}
-  cd adamajava
-  ~~~~
+
+~~~~{.text}
+cd adamajava
+~~~~
 
 *  Run gradle to build `qannotate` and its dependent jar files:
-  ~~~~{.text}
-  ./gradlew :qannotate:build
-  ~~~~
+
+~~~~{.text}
+./gradlew :qannotate:build
+~~~~
+
   This creates the `qannotate` jar file along with dependent jars in the `qannotate/build/flat` folder
 
 

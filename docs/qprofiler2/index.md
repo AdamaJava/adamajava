@@ -8,19 +8,23 @@
 qprofiler2 requires java 21 and Multi-core machine (ideally) and 5G of RAM
 
 * To do a build of qprofiler2, first clone the adamajava repository.
-  ~~~~{.text}
-  git clone https://github.com/AdamaJava/adamajava
-  ~~~~
+
+~~~~{.text}
+git clone https://github.com/AdamaJava/adamajava
+~~~~
 
 *  Then move into the adamajava folder:
-  ~~~~{.text}
-  cd adamajava
-  ~~~~
+
+~~~~{.text}
+cd adamajava
+~~~~
 
 *  Run gradle to build qprofiler2 and its dependent jar files:
-  ~~~~{.text}
-  ./gradlew :qprofiler2:build
-  ~~~~
+
+~~~~{.text}
+./gradlew :qprofiler2:build
+~~~~
+
   This creates the qprofiler2 jar file along with dependent jars in the `qprofiler2/build/flat` folder
 
 ## Usage

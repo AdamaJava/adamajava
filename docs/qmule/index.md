@@ -15,19 +15,23 @@ from the table below.
 qmule requires java 21 and has different compute and memory requirements deepening on the mode.
 
 * To do a build of qmule, first clone the adamajava repository.
-  ~~~~{.text}
-  git clone https://github.com/AdamaJava/adamajava
-  ~~~~
+
+~~~~{.text}
+git clone https://github.com/AdamaJava/adamajava
+~~~~
 
 *  Then move into the adamajava folder:
-  ~~~~{.text}
-  cd adamajava
-  ~~~~
+
+~~~~{.text}
+cd adamajava
+~~~~
 
 *  Run gradle to build qmule and its dependent jar files:
-  ~~~~{.text}
-  ./gradlew :qmule:build
-  ~~~~
+
+~~~~{.text}
+./gradlew :qmule:build
+~~~~
+
   This creates the qmule jar file along with dependent jars in the `qmule/build/flat` folder
 
 ## Usage
