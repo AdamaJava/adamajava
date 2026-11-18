@@ -97,7 +97,7 @@ piles up the reads around the indel to count the number of reads covering
 each position in the range.
 
 
-### [snp](qbasepileup_snp_mode)
+### [snp](qbasepileup_snp_mode.md)
 
 Reads one or more BAM files, a reference genome, and a file containing
 positions of SNPs. It finds the reference genome base at the SNP position 
@@ -118,7 +118,7 @@ and( Flag_DuplicateRead==false, CIGAR_M>34, MD_mismatch <= 3, option_SM > 10)
 ~~~~
 
 For a more detailed description of qbamfilter and how it works to filter
-reads in and out of a particular analysis, see[qbamfilter](../qbamfilter/).
+reads in and out of a particular analysis, see[qbamfilter](../qbamfilter/index.md).
 
 
 This mode is for compound SNPs, is very similar to [snp mode](qbasepileup_snp_mode.md) except:
@@ -132,7 +132,7 @@ This mode is for compound SNPs, is very similar to [snp mode](qbasepileup_snp_mo
 Like snp mode, but the SNP positions file must be in MAF format and this
 must be given explicitly with `-f maf`.
 
-### [indel](qbasepileup_indel_mode)
+### [indel](qbasepileup_indel_mode.md)
 ```diff
 -This mode is deprecated due to the indle file format (dcc1) is no longer available!
 ```

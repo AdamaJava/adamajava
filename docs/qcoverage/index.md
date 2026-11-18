@@ -87,8 +87,8 @@ Option              Description
 --input-gff3        Req, a GFF3 input file defining the features.
 --log               Req, log file.
 --loglevel          Opt, logging level [INFO,DEBUG], Def=INFO.
---output            Req, the output file path. Here, filename extension (txt, xml
-                      or vcf) will automatically added. When more than one
+--output            Req, the output file path. The filename extension (txt, xml,
+                      vcf or bed) will be added automatically. When more than one
                       coverage type is requested, either a single output file
                       is provided, in which case the type is added to the file
                       name, or one output file is provided per coverage type.
@@ -298,7 +298,7 @@ when in multithreaded mode.
 ## Filtering
 
 qcoverage reuses the query engine underpinning
-[qbamfilter](../qbamfilter/), allowing the user to include only BAM reads 
+[qbamfilter](../qbamfilter/index.md), allowing the user to include only BAM reads 
 satisfying a specified query expression. Like qbamfilter, this query
 expression is supplied with the --query option.  Identical query-language
 semantics apply to qcoverage as for qbamfilter. A complete specification of

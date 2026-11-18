@@ -1,6 +1,6 @@
 # qmotif v1.2
 
-> **Note:** this page documents an old release of qmotif (distributed via SourceForge) and its command line options differ from the current version. For the current version see [qmotif](qmotif).
+> **Note:** this page documents an old release of qmotif (distributed via SourceForge) and its command line options differ from the current version. For the current version see [qmotif](qmotif.md).
 
 
 `qmotif` searches BAM sequencing records for user-specified nucleotide 

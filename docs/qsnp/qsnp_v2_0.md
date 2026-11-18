@@ -148,14 +148,14 @@ This mode walks through both the normal and tumour bam files applying a filter (
 
 Multi-threaded - requires 5 threads (2 to read the 2 input bams, 2 to accumulate the information, and another to determine if there is sufficient evidence of a mutation)
 
-An example ini file for standard mode can be found [here](qsnp_ini#standard-mode)
+An example ini file for standard mode can be found [here](qsnp_ini.md#standard-mode)
 
 <a name="vc_mode"></a>
 ### `vcf` mode
 
 In VCF mode, qsnp takes a pair (tumour, normal) of VCF files from GATK's HaplotypeCaller (or a similar caller), and uses those to create a single VCF file containing the somatic and germline mutations, along with any additional information which can be used to further filter the records. If no control VCF is given, the tumour VCF is processed on its own. If a test BAM is given, its header is used to sort the output, otherwise GRCh37 contig order is assumed.
 
-An example ini file for vcf mode can be found [here](qsnp_ini#vcf-mode)
+An example ini file for vcf mode can be found [here](qsnp_ini.md#vcf-mode)
 
 The `mutect` mode of earlier versions has been removed.
 
@@ -173,7 +173,7 @@ section title enclosed in square braces and sitting as the first and only
 element on a line. Each section has 1 or more properties, each of which is
 a name/value pair with an "=" char used as separator.
 
-Please [click here](qsnp_ini) for further information including example ini
+Please [click here](qsnp_ini.md) for further information including example ini
 files for each of the qsnp modes.
 
 ### Output

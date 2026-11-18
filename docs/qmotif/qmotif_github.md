@@ -1,6 +1,6 @@
 # qmotif (github version)
 
-> **Note:** the main, maintained qmotif page is [qmotif](qmotif). This page covers the same (current) version.
+> **Note:** the main, maintained qmotif page is [qmotif](qmotif.md). This page covers the same (current) version.
 
 `qmotif` searches BAM sequencing records for user-specified nucleotide 
 motifs. It 
@@ -119,7 +119,7 @@ This table shows the parameters that can be specified in `[PARAMS]` :
 | stage2_motif_regex     | (...GGG){2,}&vert;(CCC...){2,}   | As per `stage1_motif_regex` but for the second stage matching.                                                                                                                                                                                                 |
 | stage1_string_rev_comp | true                             | If this parameter is set to true then the reverse complement is also matched for any motifs specified in `stage1_motif_string`.  It has no effect if the `_regex` parameters are used so any regex should include the reverse complement if you care about it. |
 | stage2_string_rev_comp | true                             | If this parameter is set to true then the reverse complement is also matched for any motifs specified in `stage2_motif_string`.  It has no effect if the `_regex` parameters are used so any regex should include the reverse complement if you care about it. |
-| window_size            | 10000                            | For GENOMIC regions (see below), this is the size of the windows that are considered for reporting.  Required - there is no default value, and qmotif will fail to run if window_size is not specified.                                                         |
+| window_size            | 10000                            | For GENOMIC regions (see below), this is the size of the windows that are considered for reporting.  Required - there is no default value, and qmotif will fail to run if window_size is not specified. 10000 is a typical value.                                                       |
 
 The `_string` and `_regex` parameters are mutually exclusive within a stage,
 i.e. you can set either `stage1_motif_string` or `stage1_motif_regex` but not both.

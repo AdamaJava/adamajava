@@ -11,7 +11,7 @@ optionally written to a different BAM file.  For the library use-case,
 only BAM records that pass the query string are accepted for further 
 processing by the AdamaJava tool.
 There is a separate page with a more detailed explanation of the
-[qbamfilter query language](qbamfilter_query).
+[qbamfilter query language](qbamfilter_query.md).
 
 ## Installation
 
@@ -131,6 +131,6 @@ It is important to remember that the query must evaluate to 'true" for the
 read to be passed by qbamfilter and be written to the `--output` BAM file.
 
 There is a separate page with a more detailed explanation of the
-[qbamfilter query language](qbamfilter_query).
+[qbamfilter query language](qbamfilter_query.md).
 
 

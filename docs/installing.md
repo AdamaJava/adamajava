@@ -6,21 +6,21 @@ To build adamajava tools, you will need to have `git` and `gradle`
 installed. This example shows how to build an executable `jar` file for
 one adamajava tool - `qprofiler2` in this instance.
 
-These instructions will work for tools [qannotate](../qannotate/),
-[qbamfilter](../qbamfilter/),
-[qbasepileup](../qbasepileup/),
-[qcnv](../qcnv/),
-[qcoverage](../qcoverage/),
-[qmito](../qmito/),
-[qmotif](../qmotif/),
-[qmule](../qmule/),
-[qprofiler](../qprofiler/),
-[qprofiler2](../qprofiler2/),
-[qsignature](../qsignature/),
-[qsnp](../qsnp/),
-[qsv](../qsv/),
-and [qvisualise](../qvisualise/).
-These instructions will _not_ work for [qpileup](../qpileup/) which has 
+These instructions will work for tools [qannotate](qannotate/index.md),
+[qbamfilter](qbamfilter/index.md),
+[qbasepileup](qbasepileup/index.md),
+[qcnv](qcnv/index.md),
+[qcoverage](qcoverage/index.md),
+[qmito](qmito/index.md),
+[qmotif](qmotif/index.md),
+[qmule](qmule/index.md),
+[qprofiler](qprofiler/index.md),
+[qprofiler2](qprofiler2/index.md),
+[qsignature](qsignature/index.md),
+[qsnp](qsnp/index.md),
+[qsv](qsv/index.md),
+and [qvisualise](qvisualise/index.md).
+These instructions will _not_ work for [qpileup](qpileup/index.md) which has 
 non-java dependencies and needs to be compiled with reference to that code.
 
 If you want to make the adamajava tools available on a shared system such
