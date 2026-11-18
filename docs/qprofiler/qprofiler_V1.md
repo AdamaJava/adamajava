@@ -1,5 +1,7 @@
 # qprofiler 
 
+> **Note:** this page documents an old release of qprofiler (qprofiler-1.0.jar, or adamajava release 39.b903c82 or older). Building the current master branch produces qprofiler V2, whose options differ - see [qprofiler V2](qprofiler_V2.md).
+
 `qprofiler` provides quality control reporting for next-generation sequencing(NGS). `qprofiler` takes FASTQ, BAM/SAM, FASTA, QUAL,GFF3, MA and VCF files as input and outputs an XML file containing summary statistics tailored to the input file type. If no output file is specified then the default output file name will be used: `qprofiler.xml`.
 
 While the XML file is useful for extracting values for further analysis, a visual representation of the data is more useful in most cases so another tool qvisualise was created to parse the qprofiler XML files and produce HTML output with embedded graphs via the Charts javascript library developed by Google. qvisualise exists as a standalone program but it is also integrated into qprofiler so a HTML file will always be output by qprofiler unless the --nohtml tag is used. The HTML file name is based on the XML output filename with the extension .html appended.

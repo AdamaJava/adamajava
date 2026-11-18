@@ -8,12 +8,13 @@ Key features include:
 
 * joint-caller that considers tumour and normal BAMs together
 * calls both somatic and germline variants
-* fast - multi-threaded so typically exomes run in under an hour and genomes in 3-4 hours
+* fast - multi-threaded, so exomes typically run in under an hour, and a whole genome tumour/normal pair (~100x/40x) in under 2 hours
 * written in java so runs on many machine architectures
 * driven by a config file in the standard Windows-style INI format
-* produces VCF output as well as a format specific to the ICGC project
+* produces VCF output
 * annotates variants with evidence codes that can be used to filter for high confidence variants
 * includes a VCF mode that will compare a pair of VCFs from GATK or other tools that call tumour and normal separately
+* can be run on a single (tumour) sample
 * includes a BAM filter step that can be used to exclude undesirable reads
 * annotates germline SNPs that exhibit possible LOH (homozygous for non-reference allele)
 
@@ -29,30 +30,23 @@ You can find the paper [here](http://www.plosone.org/article/info%3Adoi%2F10.137
 
 ## Installation
 
-qsnp requires java 21 and (ideally) a multi-core machine (5 threads are run
-concurrently) with at least 20GB of RAM.
+qsnp requires java 21 and (ideally) a multi-core machine with at least 20GB of RAM. Whole genome tumour/normal pairs need more - see [Memory and garbage collection](#memory-and-garbage-collection).
 
-* Download the [qsnp tar file](http://sourceforge.net/projects/adamajava/files/qsnp.tar.bz2/download)
-* Untar the tar file into a directory of your choice
+* To do a build of qsnp, first clone the adamajava repository.
+  ~~~~{.text}
+  git clone https://github.com/AdamaJava/adamajava
+  ~~~~
 
-You should see jar files for qsnp and its dependencies:
+*  Then move into the adamajava folder:
+  ~~~~{.text}
+  cd adamajava
+  ~~~~
 
-~~~~{.text}
-$ tar xvf qsnp.tar.bz2
-x antlr-3.2.jar
-x commons-math3-3.1.1.jar
-x ini4j-0.5.2-SNAPSHOT.jar
-x jopt-simple-3.2.jar
-x picard-1.110.jar
-x qbamfilter-1.0pre.jar
-x qcommon-0.1pre.jar
-x qio-0.1pre.jar
-x qmaths-0.1pre.jar
-x qpicard-0.1pre.jar
-x qsnp-1.0.jar
-x sam-1.110.jar
-[oholmes@minion0 qsnp]$
-~~~~
+*  Run gradle to build qsnp and its dependent jar files:
+  ~~~~{.text}
+  ./gradlew :qsnp:build
+  ~~~~
+  This creates the qsnp jar file along with dependent jars in the `qsnp/build/flat` folder
 
 
 ## Usage
@@ -68,38 +62,30 @@ The contents of a config file are:
 
 ~~~~{.text}
 [inputFiles]
-dbSNP = <OPTIONAL - fullpath to dbSNP vcf file, or leave blank if no dbSNP file>
-germlineDB = <OPTIONAL - fullpath to germline database vcf file, or leave blank if no file>
-chrConv = <REQUIRED if annotateMode is set to dcc, OPTIONAL otherwise - fullpath to chromosome conversion file, or leave blank if no file>
-ref = <REQUIRED - ful path to reference fasta file used to map the bam files>
-normalBam = <REQUIRED - full path to control bam file>
-tumourBam = <REQUIRED - full path to test bam file>
-illuminaNormal = <OPTIONAL - fullpath to control Illumina snp chip file, or leave blank if no file>
-illuminaTumour = <OPTIONAL - fullpath to test Illumina snp chip file, or leave blank if no file>
+ref = <REQUIRED - full path to the reference fasta file used to map the bam files>
+controlBam = <OPTIONAL - full path to the control bam file. If not set, qsnp runs in single sample mode>
+testBam = <REQUIRED - full path to the test bam file>
 
 [parameters]
-runMode            = standard
-filter             = and (Flag_DuplicateRead==false , CIGAR_M>34 , MD_mismatch <= 3 , option_SM > 10)
-annotateMode       = vcf
+runMode = standard
+filter = and (Flag_DuplicateRead==false , CIGAR_M>34 , MD_mismatch <= 3 , option_SM > 10)
 
 [ids]
 donor = <donor_id>
-normalSample = <control_sample_id>
-tumourSample = <test_sample_id
+controlSample = <control_sample_id>
+testSample = <test_sample_id>
 analysisId = <unique_id_for_this_analysis>
 
 [outputFiles]
 vcf = <REQUIRED - full path to output vcf file>
-dccSomatic = <REQUIRED if annotateMode is set to dcc, OPTIONAL otherwise>
-dccGermline =<REQUIRED if annotateMode is set to dcc, OPTIONAL otherwise>
 
 [rules]
-normal1=0,20,3
-normal2=21,50,4
-normal3=51,,10
-tumour1=0,20,3
-tumour2=21,50,4
-tumour3=51,,5
+control1=0,20,3
+control2=21,50,4
+control3=51,,10
+test1=0,20,3
+test2=21,50,4
+test3=51,,5
 ~~~~
 
 
@@ -109,14 +95,20 @@ The [qsnp ini](qsnp_ini.md) page has further details on the ini format.
 Run the following command to start execution.
 
 ~~~~{.text}
-java -Xmx20g -jar qsnp-1.0.jar -i qsnp_demo.ini -log /path/to/qsnp/qsnpdemo.log
+java -Xmx20g -jar qsnp/build/flat/qsnp.jar -i qsnp_demo.ini -log /path/to/qsnp/qsnpdemo.log
 ~~~~
+
+### Memory and garbage collection
 
 For whole genome tumour/normal pairs, the parallel garbage collector is recommended. On a ~100x/40x WGS pair it ran ~11% faster than the default (G1) collector and used about half the CPU, with identical output. Allow ample heap (60GB was used in testing):
 
 ~~~~{.text}
-java -XX:+UseParallelGC -Xms60g -Xmx60g -jar qsnp-1.0.jar -i qsnp_demo.ini -log /path/to/qsnp/qsnpdemo.log
+java -XX:+UseParallelGC -Xms60g -Xmx60g -jar qsnp/build/flat/qsnp.jar -i qsnp_demo.ini -log /path/to/qsnp/qsnpdemo.log
 ~~~~
+
+The `adama/bin/qsnp` launcher script already uses the parallel garbage collector, but does not set the heap size, so java will use 25% of the memory it can see. Set `-Xmx` (or request enough memory from the scheduler) for large inputs.
+
+When the parallel garbage collector pauses, it briefly uses all of the machine's cores. On shared nodes, `-XX:ParallelGCThreads=N` limits it to N threads.
 
 This will log both to console and to the specified log file.
 The log file looks like:
@@ -147,9 +139,7 @@ qsnp has a number of modes.  Modes are specified in the ini file using the `runM
 Mode     | Description
 -------- | ------------
 [standard](#st_mode) | Main qsnp mode where BAM files for normal and tumour samples are compared and filtered using qsnp's heuristic engine.
-[vcf](#vc_mode)      | Takes a pair of GATK VCF files for normal and
-tumour BAMs along with the BAMs and does the subtractive calling of somatic/germline variants plus applies qsnp filtering rules and outputs in ICGC DCC format
-[mutect](#mu_mode)   | Takes Mutect output files, applies qsnp filtering rules and outputs in ICGC DCC format
+[vcf](#vc_mode)      | Takes a pair of GATK VCF files for the normal and tumour samples, does the subtractive calling of somatic/germline variants, and applies the qsnp filtering rules
 
 <a name="st_mode"></a>
 ### `standard` mode
@@ -158,26 +148,23 @@ This mode walks through both the normal and tumour bam files applying a filter (
 
 Multi-threaded - requires 5 threads (2 to read the 2 input bams, 2 to accumulate the information, and another to determine if there is sufficient evidence of a mutation)
 
-An example ini file for standard mode can be found [here](qsnp_ini#standard-mode)
+An example ini file for standard mode can be found [here](qsnp_ini.md#standard-mode)
 
 <a name="vc_mode"></a>
-## `vcf` mode ##
+### `vcf` mode
 
-In VCF mode, qsnp takes a pair (tumour, normal) of VCF files from GATK's UnifiedGenotyer/HaplotypeCaller VCF files, and uses those to create a single vcf file containing somatic and germline mutations, along with any additional information (eg. novel starts counts) which can be used to further filter snp records. The original test and control bams are also required as input parameters in the ini file.
+In VCF mode, qsnp takes a pair (tumour, normal) of VCF files from GATK's HaplotypeCaller (or a similar caller), and uses those to create a single VCF file containing the somatic and germline mutations, along with any additional information which can be used to further filter the records. If no control VCF is given, the tumour VCF is processed on its own. If a test BAM is given, its header is used to sort the output, otherwise GRCh37 contig order is assumed.
 
-An example ini file for vcf mode can be found [here](qsnp_ini#vcf-mode)
+An example ini file for vcf mode can be found [here](qsnp_ini.md#vcf-mode)
 
-<a name="mu_mode"></a>
-### `mutect` mode
-
-In this mode, qsnp takes the output from [MuTect](http://www.broadinstitute.org/cancer/cga/mutect_run) as input. MuTect is a somatic caller and so all calls are set as such. This mode also requires the tumour bam so that it can go back to positions of interest to get coverage, strand and novel start information, as this is missing from the MuTect output.
+The `mutect` mode of earlier versions has been removed.
 
 ## I/O
 
 ### Input
 
-Each of the qsnp modes requires that an ini file and log file be passed as
-the only arguments to the program.
+Each of the qsnp modes requires that an ini file (`-i`) and log file (`-log`) be passed as
+the only arguments to the program. `-loglevel DEBUG` gives more detailed logging.
 The [INI](http://en.wikipedia.org/wiki/INI_file) file is in the classic 
 format originally popularised by the Windows operating system and
 subsequently deprecated in favour of the registry and/or XML config files.
@@ -186,7 +173,7 @@ section title enclosed in square braces and sitting as the first and only
 element on a line. Each section has 1 or more properties, each of which is
 a name/value pair with an "=" char used as separator.
 
-Please [click here](qsnp_ini) for further information including example ini
+Please [click here](qsnp_ini.md) for further information including example ini
 files for each of the qsnp modes.
 
 ### Output
@@ -251,7 +238,6 @@ AC | allele count: lists number of reads on forward strand avg base quality, rev
 
 ### External
 
-* [picard](https://sourceforge.net/projects/picard/?source=navbar) - version 1.110
-* [ini-4j](http://ini4j.sourceforge.net/) - version 0.5.2-SNAPSHOT
-* [jopt-simple](http://pholser.github.io/jopt-simple/) - version 3.2
-* [commons-math3](http://commons.apache.org/proper/commons-math/) - version 3.1.1
+The external libraries (htsjdk, ini4j, jopt-simple etc.) are downloaded by
+gradle when qsnp is built, and are copied to `qsnp/build/flat` along with the
+qsnp jar. See `qsnp/build.gradle` for the versions used.

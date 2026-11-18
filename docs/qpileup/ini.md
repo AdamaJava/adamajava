@@ -35,7 +35,7 @@ nonref_percent=30
 that `add` and `view` will be the most often used qpileup modes as this mode allows for addition of new BAMs to existing qpileup files and "view" allows
 for querying of locations in the qpileup file. 
 
-  * there are two ways to add BAM file, here providing a file with bam files listed using `bamlist=<path to a file listing all BAMs>`.
+  * there are two ways to add BAM file, here providing a file with bam files listed using `bam_list=<path to a file listing all BAMs>`.
   * the `hdf` must pre-exist. It is often directory copied from boostrap output.
   * the `output_dir` is not used in add mode.
   * In this example default `range=all` is used. 
@@ -145,7 +145,7 @@ group = forward
 
 ## `merge`
 
-`merge` mode will merge 2 or more HDF5 files together. The files must use the same reference genome, and the same values for `lowreadcount` and `percentnonref`.
+`merge` mode will merge 2 or more HDF5 files together. The files must use the same reference genome, and the same values for `low_read_count` and `nonref_percent`.
 the [boostrap] section is required, the merge will call boostrap mode to create a new hdf file. Merge use single thread, it took about 3 hours with 9G RAM for 3 H5 inputs, each about 20G. 
 
 An example of INI to run merge mode is given, here
@@ -167,8 +167,8 @@ low_read_count=10
 nonref_percent=30
 
 [merge]
-input_hdf==/path/testA.h5
-input_hdf==/path/testB.h5
+input_hdf=/path/testA.h5
+input_hdf=/path/testB.h5
 ~~~~
 
 
@@ -178,15 +178,18 @@ input_hdf==/path/testB.h5
 [general]
 ;hdf is the input for metrics mode, must exists. 
 hdf=/path/target_109.qpileup.h5
-;output_dir, range is required in metric mode
+;output_dir is required in metrics mode; range is optional (Def=all)
 output_dir=/path/
 range=chr1
 thread_no=12
 log=/path/test.log
-mode=add
+mode=metrics
 
 [metrics]
 min_bases=3
+;temporary_dir is required in metrics mode
+temporary_dir=/path/tmp
+;bigwig output is only produced when both bigwig_path and chrom_sizes are set
 bigwig_path=/qpileup/wiggle
 chrom_sizes=/qpileup/wiggle/grc37.chromosomes.txt
 
@@ -216,7 +219,6 @@ germlineDB=/qpileup/files/icgc_germline_qsnp.vcf
 nonref_percent=20
 nonref_count=100
 high_nonref_count=1
-position_value=1 (??not used)
 window_count=2
 
 [metrics/strand_bias]

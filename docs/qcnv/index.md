@@ -12,24 +12,21 @@ approximately 2GB for a single thread although the memory use scales
 linearly with thread count so using large numbers of threads requires
 large amounts of memory. To install:
 
-* Download the [qcnv tar file](https://sourceforge.net/projects/adamajava/files/qcnv-0.3.tar.bz2/download)
-* Untar the tar file into a directory of your choice
- 
-You should see jar files for qcnv and its dependencies:
+* To do a build of qcnv, first clone the adamajava repository.
+  ~~~~{.text}
+  git clone https://github.com/AdamaJava/adamajava
+  ~~~~
 
-~~~~{.text}
-> tar xjvf qcnv-0.3.tar.bz2
-x antlr-3.2.jar
-x commons-cli-1.2.jar
-x htsjdk-1.140.jar
-x jopt-simple-4.6.jar
-x picard-lib.jar
-x qbamfilter-1.2.jar
-x qcnv-0.3pre.jar
-x qcommon-0.3.jar
-x qpicard-1.1.jar
-x trove-3.1a1.jar
-~~~~
+*  Then move into the adamajava folder:
+  ~~~~{.text}
+  cd adamajava
+  ~~~~
+
+*  Run gradle to build qcnv and its dependent jar files:
+  ~~~~{.text}
+  ./gradlew :qcnv:build
+  ~~~~
+  This creates the qcnv jar file along with dependent jars in the `qcnv/build/flat` folder
 
 ## Usage
 
@@ -70,7 +67,7 @@ with 'chr' and tht have at least 100 bases with a CIGAR char of 'M
 `-q "and(RNAME =~ chr*, cigar_M >= 100)"`).
 
 ~~~~{.text}
- java -jar -Xms40g -Xmx40g  qcnv-0.3pre.jar -w 10000 --thread 16 \
+ java -jar -Xms40g -Xmx40g  qcnv/build/flat/qcnv.jar -w 10000 --thread 16 \
    -i P1tumourBAM --id tumour \
    -i P1normalBAM --id normal \
    -i P1metastasisBAM --id metastasis \

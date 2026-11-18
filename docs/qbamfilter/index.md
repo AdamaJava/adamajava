@@ -11,7 +11,7 @@ optionally written to a different BAM file.  For the library use-case,
 only BAM records that pass the query string are accepted for further 
 processing by the AdamaJava tool.
 There is a separate page with a more detailed explanation of the
-[qbamfilter query language](qbamfilter_query).
+[qbamfilter query language](qbamfilter_query.md).
 
 ## Installation
 
@@ -62,7 +62,7 @@ java -jar qbamfilter.jar -q "or( MAPQ > 50, option_ZM == 1 )" -i /path/input.bam
 
 --loglevel              Opt, Logging level [INFO,DEBUG], Def=INFO.
 --filterOut, -f         Opt, BAM file for records that failed --query.
---maxRecordNumber, -m   Opt, BAM record queue size in 1000's, Def=100.
+--maxRecordNumber, -m   Opt, BAM record queue size in 1000's, Def=1000.
 --sort                  Opt, Sort order [queryname,coordinate,unsorted], Def=unsorted.
 --threadNumber, -t      Opt, Filtering thread count, Def=1.
 --tmpdir                Opt, Location of temporary BAM files.
@@ -82,7 +82,8 @@ written.
 ### `--maxRecordNumber`
 
 BAM record queue size during reading and writing. The unit is 1000's
-or records so `--maxRecordNumber=100` allows for a queue of 100,000 records.
+of records so `--maxRecordNumber=100` allows for a queue of 100,000 records.
+The default is 1000, i.e. a queue of 1,000,000 records.
 
 ### `--tmpdir`
 
@@ -130,6 +131,6 @@ It is important to remember that the query must evaluate to 'true" for the
 read to be passed by qbamfilter and be written to the `--output` BAM file.
 
 There is a separate page with a more detailed explanation of the
-[qbamfilter query language](qbamfilter_query).
+[qbamfilter query language](qbamfilter_query.md).
 
 

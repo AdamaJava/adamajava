@@ -39,7 +39,7 @@
 ## Usage
 
 ~~~~{.text}
-java -jar qmotif.jar --ini <ini_file> --bam <input_bam_file> -o <xml_file> -o <bam_file> --log <logfile> [options]
+java -jar qmotif.jar --ini <ini_file> --input-bam <input_bam_file> --input-bai <input_bai_file> --output-xml <xml_file> --output-bam <bam_file> --log <logfile> [options]
 ~~~~
 
 * **To run qmotif, you need to supply an ini file**
@@ -50,9 +50,9 @@ java -jar qmotif.jar --ini <ini_file> --bam <input_bam_file> -o <xml_file> -o <b
             --input-bai /mydata/bamFile.bam.bai \
             --log /mydata/bamFile.bam.qmotif.log \
             --loglevel DEBUG \
-            -ini /mydata/qmotif.ini \
-            -output-xml /mydata/bamFile.bam.qmotif.xml \
-            -output-bam /mydata/bamFile.telomere.bam
+            --ini /mydata/qmotif.ini \
+            --output-xml /mydata/bamFile.bam.qmotif.xml \
+            --output-bam /mydata/bamFile.telomere.bam
   ```
 
 ## Options
@@ -82,7 +82,7 @@ Option               Description
 --output-xml         Req, Output XML file containing the    
                        motifs found and the regions they    
                        were found in.                       
---query              Req, Query string for selecting reads  
+--query              Opt, Query string for selecting reads  
                        for coverage.                        
 --threads <Integer>  Opt,Number of threads to use when      
                        running qmotif. Def=1.               
@@ -138,7 +138,7 @@ This table shows the parameters that can be specified in [PARAMS] :
 |stage2_motif_regex	| (...GGG){2,}|(CCC...){2,}	| As per stage1_motif_regex but for the second stage matching.|
 |stage1_string_rev_comp	| true	| If this parameter is set to true then the reverse complement is also matched for any motifs specified in stage1_motif_string. It has no effect if the _regex parameters are used so any regex should include the reverse complement if you care about it.|
 |stage2_string_rev_comp	| true	| If this parameter is set to true then the reverse complement is also matched for any motifs specified in stage2_motif_string. It has no effect if the _regex parameters are used so any regex should include the reverse complement if you care about it.|
-|window_size	| 10000	| For GENOMIC regions (see below), this is the size of the windows that are considered for reporting. If window_size is not specified, the default value is 10000|
+|window_size	| 10000	| For GENOMIC regions (see below), this is the size of the windows that are considered for reporting. Required - there is no default value, and qmotif will fail to run if window_size is not specified. 10000 is a typical value.|
 
 The `_string` and `_regex` parameters are mutually exclusive within a stage, i.e. you can set either `stage1_motif_string` or `stage1_motif_regex `but not both.
 

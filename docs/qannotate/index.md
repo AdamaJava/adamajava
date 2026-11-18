@@ -9,18 +9,20 @@ It can also create a [TSV](https://en.wikipedia.org/wiki/Tab-separated_values) f
 from a VCF file, adding annotations from multiple sources as defined in a 
 [JSON](https://en.wikipedia.org/wiki/JSON) file.
 
-The modes available to qannotate are:
-* Cadd
-* CCM
-* Confidence
-* dbSNP
-* Germline
-* Homopolymer
-* IndelConfidence
-* Overlap
-* SnpEff
-* TandemRepeat
-* Vcf2Maf
+The modes available to qannotate (the value passed to `--mode`, case-insensitive) are:
+* `cadd`
+* `ccm`
+* `confidence`
+* `dbsnp`
+* `germline`
+* `hom` (homopolymer)
+* `indelconfidence`
+* `make_valid` - takes an existing invalid VCF file and makes it valid by splitting joined format columns into separate columns (removing the `&` operator)
+* `overlap`
+* `snpeff`
+* `trf` (tandem repeat)
+* `vcf2maf`
+* `vcf2maftmp` - accepted by the option parser, but is not currently dispatched to an annotation mode, so running it results in an error
 
 
 ## Installation
@@ -46,18 +48,71 @@ The modes available to qannotate are:
 ## Usage 
 
 ~~~~
-usage: java -Xmx20G -jar qannotate.jar --mode <annotation mode>  --input <vcf file> --d <database file> --output <output vcf> --log <log file> [options]
+usage: java -Xmx20G -jar qannotate.jar --mode <annotation mode> --input <vcf file> -d <database file> --output <output vcf> --log <log file> [options]
 Option              Description
 ------              -----------
---help              Show usage and help.
---input             Req, a VCF input file containing the records to be annotated.
---mode              Req, a GFF3 input file defining the features.
+-h, --help          Show usage and help.
+-i, --input         Req, a VCF input file containing the records to be annotated.
+--mode              Req, the annotation mode (see list above).
 --log               Req, log file.
 --loglevel          Opt, logging level [INFO,DEBUG], Def=INFO.
---output            Req, the output VCF file path.
---version           Show version number.
+-o, --output        Req, the output VCF file path.
+-v, --version       Show version number.
+-d, --database      Database file used by the annotation mode. Required by dbsnp, germline,
+                    hom, cadd, snpeff and trf modes. May be specified more than once
+                    (eg. cadd, overlap). Not available in confidence and vcf2maf modes,
+                    which take --test/--control instead.
 ~~~~
 
+Mode-specific options:
+
+~~~~
+confidence and vcf2maf
+--test              Opt, test sample column name. Defaults to the value of ##qTestSample in the VCF header.
+--control           Opt, control sample column name. Defaults to the value of ##qControlSample in the VCF header.
+
+confidence
+--nnsCounts         Opt, number of novel starts (NNS) required to be High Confidence.
+--mrCounts          Opt, number of mutant reads (MR) required to be High Confidence.
+--mrPercentage      Opt, number of mutant reads (MR) required to be High Confidence as a percentage.
+--minCutoff         Opt, minimum number of reads containing the alt that will result in a MIN (Mutation In Normal)
+                    in the filter field. Used in conjunction with --minPercentage.
+--minPercentage     Opt, percentage of reads containing the alt that will result in a MIN (Mutation In Normal)
+                    in the filter field. Used in conjunction with --minCutoff.
+--controlCoverageCutoff
+                    Opt, minimum coverage (DP format field) value to gain a PASS for control samples.
+--controlCoverageCutoffForSomatic
+                    Opt, minimum coverage (DP format field) value to gain a PASS for control samples
+                    when the call is a SOMATIC one.
+--testCoverageCutoff
+                    Opt, minimum coverage (DP format field) value to gain a PASS for test samples.
+--miunCutoff        Opt, number of failed filter reads (FF) containing the alt that will result in a MIUN
+                    (Mutation In Unfiltered Normal). Accepted, but not currently used by confidence mode.
+
+confidence and indelconfidence
+--homCutoff         Opt, cutoff value for number of homopolymer bases. Def=6.
+
+hom
+--homWindow         Opt, check for homopolymers inside this window size on both sides of variants. Def=100.
+--homReportWindow   Opt, number of homopolymer bases on either side of the variant to report. Def=10.
+
+snpeff
+--config            Opt, full path to snpEff config file. Defaults to snpEff.config in the database file directory.
+--summaryFile       Opt, full path to output stats file. Defaults to <output file name>.snpEff_summary.html.
+
+trf
+--buffer            Opt, check TRF region on both sides of indel within this nominated size. Def=0.
+
+cadd
+--gap               Opt, adjacent variants size. Def=1000.
+
+vcf2maf
+--outdir            Opt, produce all output MAF files under this directory (created if it does not exist).
+                    Either --outdir or --output must be supplied.
+--donor             Opt, donor id, used in output file names. Defaults to ##qDonorId in the VCF header.
+--center            Opt, genome sequencing center.
+--sequencer         Opt, sequencer platform, eg. Illumina HiSeq, Illumina MiSeq, Ion Torrent PGM.
+~~~~
 
 OR
 
@@ -65,12 +120,13 @@ OR
 usage: java -Xmx20G -cp qannotate.jar au.edu.qimr.qannotate.nanno.Annotate  --input <vcf file> --config <json configuration file> --output <output TSV> --log <log file>
 Option              Description
 ------              -----------
---help              Show usage and help.
---input             Req, a VCF input file containing the records to be annotated.
+-h, --help          Show usage and help.
+-i, --input         Req, a VCF input file containing the records to be annotated.
+--config            Req, a JSON configuration file containing the annotation sources (see Configuration below).
 --log               Req, log file.
 --loglevel          Opt, logging level [INFO,DEBUG], Def=INFO.
---output            Req, the output VCF file path.
---version           Show version number.
+-o, --output        Req, the output TSV file path.
+-v, --version       Show version number.
 ~~~~
 
 ## Output
@@ -132,17 +188,18 @@ This section will describe the JSON configuration file that is used when creatin
 ### Field description
 
 * `outputFieldOrder` Ordered list of fields from the various input sources. An exception will be thrown if this list contains a field that has not been defined in one of the inputs, or if the this field does not contain a field defined in one of the inputs.
-* `additionlaEmptyFields` Ordered list of fields (comma separated) that will be appended to the output. Useful when needing to add additional information not available in the inputs
+* `additionalEmptyFields` Ordered list of fields (comma separated) that will be appended to the output. Useful when needing to add additional information not available in the inputs
 * `includeSearchTerm` true/false value to indicate if a field should be appended to each record that uses the HGVS.c and HGVS.p fields (assuming that they have been specified in one of the inputs) to build a search term for use in PubMed.
 * `annotationSourceThreadCount` number of threads that should be made available to retrieve data from the inputs. Should be equal to the number of inputs for optimal performance. Defaults to 1.
 * `inputs` List of annotation sources, each of which must provide the following information:
   * `file` location of annotation source file
   * `chrIndex` position (1 based) of chromosome in annotation source file
-  * `positionIndex` position (1 based) of chromosome in annotation source file
-  * `refIndex` position (1 based) of chromosome in annotation source file
-  * `altIndex` position (1 based) of chromosome in annotation source file
+  * `positionIndex` position (1 based) of the variant position column in annotation source file
+  * `refIndex` position (1 based) of the reference allele column in annotation source file
+  * `altIndex` position (1 based) of the alternate allele column in annotation source file
   * `fields` list of required fields (comma separated) from this annotation source
   * `snpEffVcf` true/false value indicating if this annotation source file is a snpEff VCF file
+  * `chrStartsWithChr` optional boolean, defaults to `false`. Set to `true` if the chromosome values in this annotation source file start with `chr` (eg. `chr1`), so that the prefix is stripped when matching against the input records.
   * `byteBuffered` optional boolean, defaults to `false`. For large UTF-8 TSV sources with `chrIndex=1` and `positionIndex=2`, set this to `true` to skip unwanted rows as bytes without constructing their full strings. Supports plain text and gzip files. Other source types or column layouts use the standard reader and log a warning. All traversed gzip data is still decompressed.
 
 For example, enable the byte-buffered reader for a gnomAD TSV source with:

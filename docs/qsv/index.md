@@ -74,22 +74,24 @@ The template and description of the ini file is shown below:
 [general]
 log = Opt, base name of log file. Def=<sample>.log
 loglevel = Opt, logging level [INFO,DEBUG], Def=INFO.
-sample = Opt, donor or patient id.
+sample = Req, donor or patient id. Also used as the default log file name.
 sv_analysis = (*) Opt, type of sv analysis [pair, clip, both]. Def=both.
-output = (*) Req, output directory. A result sub folder for the analysis will be automatically created in uuid format.
+output = (*) Req, output directory, which must already exist. A result sub folder for the analysis will be automatically created in uuid format.
 reference = Req, path to fasta reference file.
 reference_index = Req, path to fasta reference index file.
-platform = Req, sequence machine platform [solid, illumina,bgi].
+platform = Opt, sequence machine platform [solid, illumina, bgi]. Def=illumina. Case-insensitive; values containing hiseq, novaseq or nextseq are treated as illumina, and bgiseq or mgiseq as bgi. Any other value is an error.
 min_insert_size = Opt, minimum size of SV insert. Def=50.
-range = Opt, specify one or more chromosomes or inter for translocations. Def={all chromosome>
+range = Opt, chromosome to analyse; repeat the option to specify several chromosomes. Alternatively use "range = inter" (on its own) for translocations only. Def=<all chromosomes>.
 repeat_cutoff = Opt, specified number of clipped reads to define a potential repeat region, Def=1000
 tiled_aligner = (*) Req, tiled aligner file with full path, created by our in-home aligner - q3tiledaligner.  
 qcmg = Opt, set to true if plan to create more output for the user named qcmg. Def=false. 
+split_read = Opt, set to false to turn off the local split read contig analysis. Always off when sv_analysis=pair. Def=true.
+gff = Opt, GFF3 file with full path; repeat the option to specify several files. Features whose region contains an SV breakpoint are listed in the event_notes column of the output. Def=<none>.
 filter_threads = (*) Opt, total number of threads used to read, annotate and filter the input BAM(s), shared between the test and control BAMs. Def=2 per BAM.
 
 [pair]
-pairing_type = (*) Opt, type of reads [pe,lmp,imp]. Def=pe.
-mapper = Opt, mapping tool name [bioscope, lifescope, bwa, bwa-mem, novoalign]. Def=bws
+pairing_type = (*) Opt, type of reads [pe,lmp,imp,lifescope]. Def=pe. lmp is treated as imp when platform is illumina.
+mapper = Opt, mapping tool name. For pairing_type=pe it must be one of [bwa, bwa-mem, bioscope, novoalign]; lifescope may be used with lmp. Def=bwa.
 pair_query = (*) Opt, qbamfilter query string for discordant pair. Def="and (Cigar_M > 34, MD_mismatch < 3, option_SM > 10, flag_DuplicateRead == false)" for Paired End reads(pe).
 cluster_size = Opt, number of discordant reads required to define a cluster. Def=3.
 filter_size = Opt, number of control reads in a cluster to classify it germline. Def=1.
@@ -127,7 +129,7 @@ name = Opt, sample name which may indicate read group id, name or type. Def=<emp
 ~~~~
 
 ### `output` option under [general] section
-Each time the qsv is run, a new folder under the output directory will be created, containing all the outputs. This new folder is named as a random uuid: \<output>/\<random uuid>/. The output directory has to be specified,  with the full path to the `output` option under [general] section, otherwise it will output to the execution directory.
+Each time the qsv is run, a new folder under the output directory will be created, containing all the outputs. This new folder is named as a random uuid: \<output>/\<random uuid>/. The output directory must be specified with the `output` option under [general] section, and the directory must already exist; qsv will not start otherwise.
  * eg. if "output=qsv", then "./qsv/\<random uuid>/" will be created; <br />
  * eg. if "output=.", then "./\<random uuid>/" will be created; <br />
  * eg. if "output=/user/home/qsv", then "/user/home/qsv/\<random uuid>" will be created. <br />
@@ -168,9 +170,9 @@ When `main_threads` or `translocation_threads` is more than 1, the order in whic
 
 ### `pairing_type` option under [pair] section
 
-the pair mode support type: pe (paired End), lmp (solid Long Mate Pair) and imp (illumina mate-pair).
+the pair mode support type: pe (paired End), lmp (solid Long Mate Pair), imp (illumina mate-pair) and lifescope. If `pairing_type = lmp` and the platform is illumina, it is treated as imp.
 
-### `query` option under [pair] or [clip] section
+### `pair_query` option under [pair] and `clip_query` option under [clip] section
 qsv uses the [qbamfilter](../qbamfilter/index.md) library to filter reads so only high-quality reads are used for analysis.
 
 ### `input_file` option under [test] and [control] section
@@ -204,9 +206,9 @@ qsv will generate a number of output files to \<output>/\<uuid>/:
  * \<sample>.no_blat_alignment.txt: An unaligned soft clips file lists soft clips with high evidence that did not align to the reference genome and are potentially somatic. 
  * \<sample>.somatic.qprimer: a file that contains lists of regions to design primers.
  * \<sample>.sv_counts.txt: a file that lists counts of the numbers of discordant pair SVs.
- * \<sample>.somatic.softlcip.txt: contigs from soft clips.
+ * \<sample>.somatic.softclip.txt: contigs from soft clips.
  * \<sample>.\<test::name|control::name>.pairing_stats.xml: a file listing discordant pair stats (counts of each type of discordant pair category).
- * \<sample>.\<chr>.\<germlines|omatic>.records: files gives information about the discordant pair reads and/or soft clipped reads that support a particular structural variant. Each structural variant is described by:
+ * \<sample>.\<chr>.\<germline|somatic>.records: files gives information about the discordant pair reads and/or soft clipped reads that support a particular structural variant. Each structural variant is described by:
    *  a header specifying the sv_id, and mutation type call.
    *  a list of the discordant reads (where appropriate) supporting the SV in the format.
    *  comma separated list of mate 1 read name:read group id, mate 1 reference, mate 1 position start, mate 1 position end, mate 1 flags, mate 1 strand, mate 2 read name:read group id, mate 2 reference, mate 2 position start, mate 2 position end, mate 2 flags, mate 2 strand, pair orientation (eg. F1R2), mutation type eg DEL/ITX based on expected read strand, orientation and distance. 

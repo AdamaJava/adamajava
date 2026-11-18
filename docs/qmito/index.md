@@ -24,7 +24,7 @@ qmito requires java 21 and Multi-core machine (ideally) and 5G of RAM
 
 ## Usage 
 
-* metic mode
+* metric mode
 
 ~~~~{.text}
 usage: java -cp qmito.jar au.edu.qimr.qmito.Metric --output <output> --input <bam file> --reference <reference file> --log <logfile> [options]
@@ -72,8 +72,9 @@ Option           Description
 ### metric mode
 
 * read in a single BAM
-* use qbamfilter to only keep read pairs we want: `and( or(RNAME =='chrM', RNEXT == 'chrM'), flag_NotPrimaryAlignment==false, flag_ReadFailsVendorQuality==false, flag_SupplementaryRead)`
-* note that DUPs and unmapped reads are OK which means the filter should pull out pairs where one or both reads mapped to the mitochondrial sequence
+* only reads aligned to the mitochondrial sequence (`chrMT` by default) are retrieved from the BAM
+* use qbamfilter to only keep the reads we want; the default query is `and (flag_NotprimaryAlignment == false, flag_ReadUnmapped == false)`
+* note that DUPs are OK, but secondary (not primary) alignments and unmapped reads are excluded by the default query
 * write a report with the same params as Felicity's `qpileup` (approx 40 params) but we want to write it to a TSV file, not the HDF5 format used by `qpileup`.
 
 

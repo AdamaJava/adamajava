@@ -12,10 +12,14 @@ had settled on
 the distinction between coverage and read depth, the `qcoverage` name had
 stuck. C'est la vie.
 
-It can be run in 2 different modes:
+It can calculate 3 types of read depth:
 
 * sequence read depth
 * physical read depth
+* low read depth - the regions where the read depth is below a cutoff
+
+Several types can be calculated in the one run - see
+[Several coverage types in one run](#several-coverage-types-in-one-run).
 
 Sequence read depth counts, for a given position, how many reads are
 aligned so that they have bases that lie over the position. 
@@ -37,10 +41,19 @@ read depth is identical to physical read depth.
 [This link](http://www.nature.com/nrg/journal/v11/n10/fig_tab/nrg2841_F1.html#figure-title)
 has more information on the differences between the two.
 
+For physical read depth, a paired read with an insert size of zero or more
+covers the fragment from its alignment start to its alignment start plus the
+insert size. Its mate (the paired read with the negative insert size) is
+skipped, so that each fragment is only counted once. An unpaired read covers its own
+alignment.
+
+Low read depth reports the regions within the GFF3 features whose sequence
+read depth is below a cutoff, in [BED](#low-read-depth-output) format.
+
 Note that this tool always uses at least 2 threads - one for monitoring
 and one worker thread. You can change the number of worker threads but
 there is always one thread in addition to the number specified with
-`--threads`. 
+`--thread`. 
 
 ## Installation
 
@@ -74,10 +87,13 @@ Option              Description
 --input-gff3        Req, a GFF3 input file defining the features.
 --log               Req, log file.
 --loglevel          Opt, logging level [INFO,DEBUG], Def=INFO.
---output            Req, the output file path. Here, filename extension will
-                      automatically added.
+--output            Req, the output file path. The filename extension (txt, xml,
+                      vcf or bed) will be added automatically. When more than one
+                      coverage type is requested, either a single output file
+                      is provided, in which case the type is added to the file
+                      name, or one output file is provided per coverage type.
 --output-format     Opt, specify output file format, multi values are allowed.
-                      Possible values: [VCF, TXT, XML]. Def=TXT.
+                      Possible values: [VCF, TXT, XML, BED]. Def=TXT.
 --per-feature       Opt, to run the per-feature coverage mode. Default is to run
                       standard coverage mode without this option.
 --query             Opt, the query string for selecting reads for coverage.
@@ -90,11 +106,19 @@ Option              Description
 --low-readdepth-query
                     Opt, the query string for low_readdepth coverage, used for
                       all of the cutoffs. Overrides --query for this type.
+--readdepth-cutoff  Req for low_readdepth, the low read depth cutoff. Read
+                      depths less than this are low. Multiple cutoffs may be
+                      supplied, either comma separated (e.g. 7,14) or by
+                      specifying the option multiple times, in which case one
+                      output file is produced per cutoff. Each cutoff may only
+                      be supplied once.
 --thread <Integer>  Opt, number of worker threads (yields n+1 total threads).
---type              Req, the type of coverage to perform. Possible Values: [sequence,
-                      physical]. 
+--type              Req, the type of coverage to perform. Possible Values:
+                      [sequence, physical, low_readdepth]. May be specified
+                      more than once (once for each type) to run several
+                      coverage types in the one invocation.
 --validation        Opt, how strict to be when reading a SAM or BAM. Possible values:
-                      [STRICT, LENIENT, SILENT].
+                      [STRICT, LENIENT, SILENT]. Def=SILENT.
 --version           Show version number.
 ~~~~
 
@@ -181,6 +205,30 @@ which we interpret as:
 * there were 64 bases with zero coverage (ZC=64) and 57 with non-zero coverage (NZC=57)
 * the total number of sequenced bases in the region is 445 (TOT=445)
 
+### low read depth output
+
+Low read depth output is always a BED file, and `.bed` is added to the output
+file name. Each line is a region within one of the GFF3 features where every
+position has a read depth below the cutoff. As usual for BED, the start is
+0-based and the end is 1-based, so a region covering positions 101 to 150 of
+chr1 is written as:
+
+~~~~{.text}
+chr1	100	150
+~~~~
+
+~~~~{.text}
+java -jar qcoverage.jar --type low_readdepth --readdepth-cutoff 8,12 \
+    --input-gff3 /path/exome.gff3 --input-bam /path/input.bam \
+    --output /path/report --log /path/report.log
+
+ls /path/report.*
+
+/path/report.log  /path/report.low_readdepth8.bed  /path/report.low_readdepth12.bed
+~~~~
+
+With a single cutoff, the output is `/path/report.bed`.
+
 ### multi formate output
 The multi formate output is allowed but not recomended. Here the VCF format only work with per-feature mode. For example
 ~~~~{.text}
@@ -194,6 +242,42 @@ ls /path/report.*
 
 ~~~~
 
+
+## Several coverage types in one run
+
+`--type` can be given more than once, to calculate several coverage types in
+the one run. The BAM file is only read once, so this is much quicker than
+running qcoverage once per type. `low_readdepth` may only be given once - use
+several `--readdepth-cutoff` values to get several low read depth reports.
+
+The output files are named in one of two ways:
+
+* a single `--output` - the coverage type is added to the name, and the cutoff
+  is added for low read depth when there is more than one cutoff
+* one `--output` per coverage type - used in the order that the types are
+  given, with low read depth taking one output per cutoff
+
+~~~~{.text}
+java -jar qcoverage.jar --type sequence --type physical \
+    --type low_readdepth --readdepth-cutoff 8,12 \
+    --input-bam test1.bam --input-gff3 some.gff3 --output /path/report --log /path/report.log
+
+ls /path/report.*
+
+/path/report.log           /path/report.physical.txt  /path/report.sequence.txt
+/path/report.low_readdepth8.bed  /path/report.low_readdepth12.bed
+~~~~
+
+There is a single log file for the run. Each coverage type can have its own
+read filter - see [different queries per coverage type](#different-queries-per-coverage-type).
+
+## Performance
+
+When no query is given for any of the coverage types, and `--validation` is
+`SILENT` (the default), qcoverage uses a fast BAM reader that only decodes the
+fields it needs from each read. Supplying a query, or `STRICT` or `LENIENT`
+validation, means that every read is fully decoded by htsjdk, which is slower.
+The output is the same either way.
 
 ## Multithreading
 
@@ -214,11 +298,11 @@ when in multithreaded mode.
 ## Filtering
 
 qcoverage reuses the query engine underpinning
-[qbamfilter](../qbamfilter/), allowing the user to include only BAM reads 
+[qbamfilter](../qbamfilter/index.md), allowing the user to include only BAM reads 
 satisfying a specified query expression. Like qbamfilter, this query
-expression is supplied with the -q,--query option.  Identical query-language
+expression is supplied with the --query option.  Identical query-language
 semantics apply to qcoverage as for qbamfilter. A complete specification of
-the qbamfilter query language can be found on the [qbamfilter](qBamfilter) page.
+the qbamfilter query language can be found on the [qbamfilter](../qbamfilter/index.md) page.
 
 The default filter that is used by QCMG when running qcoverage is as follows:
 
@@ -233,8 +317,8 @@ java -jar qcoverage.jar --type sequence\
 ### physical coverage
 
 ~~~~{.text}
-java -jar qcoverage.jar --type sequence\
-    --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile
+java -jar qcoverage.jar --type physical \
+    --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile \
     --query "and( flag_ReadFailsVendorQuality==false, flag_DuplicateRead==false, flag_ReadUnmapped==false, flag_NotprimaryAlignment==false)"
 ~~~~
 

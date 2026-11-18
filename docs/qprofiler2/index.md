@@ -26,7 +26,7 @@ qprofiler2 requires java 21 and Multi-core machine (ideally) and 5G of RAM
 ## Usage
 
 ~~~~{.text}
-java -jar qprofiler2.jar -h
+java -jar qprofiler2.jar --help
 usage: java -jar qprofiler2.jar --input <input file> --output <output xml file> --log <log file> [options]
 
 Option                        Description                                                               
@@ -44,6 +44,8 @@ Option                        Description
                                 QUAL, FASTA, GFF and GFF3 format.                                       
 --log                         Req, log file.                                                            
 --loglevel                    Opt, logging level [INFO,DEBUG], Def=INFO.                                
+--long-read                   Opt, this option indicates that the input is long read sequencing. BAM    
+                                input only.                                
 --output                      Opt, XML output which containing basic summary statistics. Def="qprofiler.
                                 xml".                                                                   
 --threads-consumer <Integer>  Opt, number of threads to process inputed records, BAM and FASTQ mode     
@@ -60,14 +62,14 @@ Option                        Description
 When running multi-threaded, we suggest more consumer than producer threads with a recommended ratio of 6:1. For example, only two threads to read (producer) the input file but 12 threads are specified to process reads (consumer). The BAM index file should also be specified in multi-producer mode. eg. 
 
 ~~~~{.text}
-java -jar qprofiler2.jar --threads-consumer 12 -threads-producer 2 --bam-index  $somedir/${bam}.bai --input  $somedir/$bam --output $somedir/${bam}.qp2.xml --log $somedir/${bam}.qp2.log
+java -jar qprofiler2.jar --threads-consumer 12 --threads-producer 2 --bam-index  $somedir/${bam}.bai --input  $somedir/$bam --output $somedir/${bam}.qp2.xml --log $somedir/${bam}.qp2.log
 ~~~~
 
 ## Output
 
 ### Xml Validation
 
-qprofiler2 provides a schema file which helps you to validate the xml output. This xsd file can be downloaded from https://purl.org/adamajava/xsd/qprofiler2/v2/qprofiler2.xsd.
+qprofiler2 provides a schema file which helps you to validate the xml output. This xsd file can be downloaded from https://purl.org/adamajava/xsd/qprofiler2/v3/qprofiler2.xsd.
 
 ~~~~{.text}
 xmllint --noout --schema ~/PATH/qprofier2.xsd qprofiler2.xml
