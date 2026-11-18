@@ -36,17 +36,18 @@ field so both or neither of the input BAMs should have the MD field.
 ## Usage
 
 ~~~~{.text}
-qmule org.qcmg.qmule.AlignerCompare -i <bam1> -i <bam2> -o <output> [options]
+java -cp "qmule/build/flat/*" org.qcmg.qmule.AlignerCompare -i <bam1> -i <bam2> -o <output> [options]
 ~~~~
 
 ## Options
 
 ~~~~{.text}
 --help, -h      Shows this help message.               
---version, -v   Print version.                 
 
 --input, -i     Req, An input BAM - must appear twice.
 --output, -o    Output file prefix.
+--log           Log file. Def=<output>.log
+--loglevel      Log level [EXEC,TOOL,DEBUG,INFO], Def=INFO.
 
 --compareAll    Keep non-primary alignments
 ~~~~
@@ -56,7 +57,7 @@ alignments (secondary and supplementary alignments).  This tool will
 split all input records into three output BAMs as shown below:
 
 ~~~~{.text}
-java -cp qmule-0.1pre.jar org.qcmg.qmule.AlignerCompare \
+java -cp "qmule/build/flat/*" org.qcmg.qmule.AlignerCompare \
     -i bwamem.bam -i bwaback.bam -o /output/prefix
 ~~~~
 
@@ -65,7 +66,7 @@ Outputs:
 1. `/output/prefix.identical.bam` - reads with the same aligment in both input BAMs
 2. `/output/prefix.different.bwamem.bam` - primary alignments from BAM1 which did not match BAM2
 3. `/output/prefix.different.bwaback.bam` - primary alignments from BAM2 which did not match BAM1
-4. `/output/prefix.log` - log file
+4. `/output/prefix.log` - log file (unless `--log` is specified)
 
 With option `compareAll`, the non-primary alignments will appear in output2
 or output3, otherwise these alignments will be discarded by default.

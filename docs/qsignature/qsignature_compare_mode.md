@@ -20,18 +20,32 @@ A single pairwise VCF comparison takes a few seconds to perform on a single core
 ## Options
 
 * -log REQUIRED full path to log file
-* -dir REQUIRED full path to directory in which to search for and compare qsignatrue vcf files (*.qsig.vcf)
+* At least one of -dir, -input or -input-list is REQUIRED to select the qsignature vcf files to compare:
+  * -dir (or -d) full path to directory in which to search for and compare qsignature vcf files (*.qsig.vcf and *.qsig.vcf.gz). May be specified more than once
+  * -input (or -i) full path to a qsignature vcf file (*.qsig.vcf or *.qsig.vcf.gz) to include in the comparison. May be specified more than once
+  * -input-list full path to a text file with one qsignature vcf path per line; relative paths are resolved against the directory of the list file
 * -output OPTIONAL full path to output xml file which will contain the comparisons.
-* -excludes OPTIONAL full path to a file containing a list of qsignature vcf files to exclude from the comparison
+* -excludeVcfsFile OPTIONAL full path to a file containing a list of qsignature vcf files to exclude from the comparison
+* -additionalSearchString OPTIONAL only files whose path contains one of the supplied strings are included in the comparison. May be specified more than once
+* -blocklist OPTIONAL BED file containing genomic positions to ignore in the comparison
+* -minCoverage OPTIONAL minimum coverage at a position for it to be used in the comparison (defaults to 10)
+* -minRGCoverage OPTIONAL minimum read group coverage at a position for it to be used (defaults to 10)
+* -cutoff OPTIONAL score below which read groups within the same file are reported as not matching in the log file (defaults to 0.95)
+* -homCutoff OPTIONAL cutoff for homozygous positions (defaults to 0.9)
+* -hetUpperCutoff OPTIONAL upper cutoff for heterozygous positions (defaults to 0.7). A position is considered heterozygous if its VAF is between the upper and lower het cutoffs
+* -hetLowerCutoff OPTIONAL lower cutoff for heterozygous positions (defaults to 0.3)
+* -noOfThreads OPTIONAL number of threads used to search for files and to load and compare them (defaults to 1)
+* -maxCacheSize OPTIONAL number of files to hold in the cache. Set this when the files to be compared have a large number of positions (defaults to -1, unlimited)
+* -loglevel OPTIONAL logging level, e.g. INFO, DEBUG (defaults to INFO)
 
 ## Usage
 
 ~~~~{.text}
-java -cp qsignature.jar org.qcmg.sig.Compare \
+java -cp "qsignature/build/flat/*" org.qcmg.sig.Compare \
         -output xmlFile \
         -log logFile \
-        -exclude excludes.file \
-        -dir suspicious/donor/directory \
+        -excludeVcfsFile excludes.file \
+        -dir suspicious/donor/directory
 ~~~~
 
 ## Output

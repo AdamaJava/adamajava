@@ -13,5 +13,5 @@ If you are using qsnp, please cite this
 
 Release Date | Version
 ------------ | --------
-             | [2.0](qsnp_v2_0) - In beta testing.
-2014-05-20   | [1.0](qsnp_v1_0) - First released version.
+             | [2.0](qsnp_v2_0.md) - In beta testing.
+2014-05-20   | [1.0](qsnp_v1_0.md) - First released version.

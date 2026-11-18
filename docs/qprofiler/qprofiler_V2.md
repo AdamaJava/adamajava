@@ -28,12 +28,13 @@ qprofiler requires java 21, multi-core machine (ideally) and 5GB of RAM
 
 ~~~~{.text}
 usage: java -jar qprofiler.jar --input <input file> --output <output xml file> --log <log file> [options]
-Option                              Description                                               
-------                              -----------                                               
 Option                        Description                                               
 ------                        -----------                                               
 -h, --help                    Show usage and help.                                      
---include                     Deprecated, Visualisation for SOLiD platform.             
+--include                     Opt, comma-separated list of extra aggregations. For BAM  
+                                input: matrices, coverage, md. For FASTQ, FASTA and QUAL
+                                input, "all" skips the per-record statistics so only the
+                                record count is reported.                               
 --index                       Opt, A bai index file. Def=null.                          
 --input                       Req, Input file in FASTQ, BAM/SAM or VCF format, also     
                                 support FA, MA, QUAL, FASTA, GFF and GFF3 format.       
@@ -51,7 +52,8 @@ Option                        Description
                                 support Printable character type, eg.["ZC", "XY"].      
 --tagsInt                     Opt, Specify user defined tags in SAM/BAM file,  which    
                                 support Signed integer type, eg.["ZC", "XY"].           
---threads-consumer <Integer>  Opt, Number of threads to process inputed BAM records.    
+--threads-consumer <Integer>  Opt, Number of threads to process inputed BAM or FASTQ   
+                                records.                                                
                                 Def=0 (run in single thread mode).                      
 --threads-producer <Integer>  Opt, Number of threads to read the indexed BAM file. This 
                                 option will ignored without positive value of "threads- 

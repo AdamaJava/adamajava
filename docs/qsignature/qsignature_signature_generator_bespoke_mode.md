@@ -39,7 +39,7 @@ a genotype array. This step needs to be performed only once per file.
 ## Usage
 
 ~~~~{.text}
-java -cp qsignature.jar org.qcmg.sig.Generate \ 
+java -cp "qsignature/build/flat/*" org.qcmg.sig.Generate \
                         -log $BAM.qsig.log \
                         -snpPositions qsignature_positions.txt \
                         -input $BAM \
@@ -48,9 +48,15 @@ java -cp qsignature.jar org.qcmg.sig.Generate \
 
 ## Options
 
-* -snpPositions REQUIRED - positions file - this is a hg19 based tab delimited text file that contains the positions at which qsignature will report upon. For bam files, a pileup is performed, and for snp array files, the logR ratio is used to determine the ref/alt split
+* -snpPositions REQUIRED (unless -genePositions and -reference are supplied) - positions file - this is a hg19 based tab delimited text file that contains the positions at which qsignature will report upon. For bam files, a pileup is performed, and for snp array files, the logR ratio is used to determine the ref/alt split
+* -genePositions OPTIONAL - GFF3 file containing a list of gene positions; can be used instead of -snpPositions, in which case -reference is REQUIRED
+* -reference OPTIONAL (REQUIRED with -genePositions) - reference fasta file
 * -input REQUIRED - data file - BAM or snp array txt file (Genome Studio)
 * -log REQUIRED - output file containing logging information
+* -loglevel OPTIONAL - logging level, e.g. INFO, DEBUG (defaults to INFO)
+* -output OPTIONAL - output VCF file. If this is an existing directory, the output is written there as `<input file name>.qsig.vcf.gz`
+* -d OPTIONAL - output directory; the output is written there as `<input file name>.qsig.vcf.gz`. If neither -output nor -d is given, the output is written next to the input as `<input>.qsig.vcf.gz`
+* -stream OPTIONAL - stream the snp positions file rather than loading it all into memory. Useful when the positions file is large (>2 million entries). The input file must be in the same chromosome order as the positions file
 * -illuminaArraysDesign OPTIONAL (REQUIRED if running against snp array txt file)- Illumina arrays design text file - contains information on how to treat entries in the snp array files
 * -minMappingQuality OPTIONAL - minimum mapping quality (defaults to 10)
 * -minBaseQuality OPTIONAL - minimum base quality (defaults to 10)

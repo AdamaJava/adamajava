@@ -23,11 +23,14 @@ key comparator value
 
 There is no operator required if the query contains a single condition.
 
-Conditions are evaluated left to right so standard
-short-circuit thinking applies, i.e. in an `and()` operator, if the first
+Standard short-circuit thinking applies, i.e. in an `and()` operator, if a
 condition evaluates to `FALSE`, the rest of the conditions are not evaluated.
-This means it is cheaper (and faster) to put the conditions that will 
-reject the most records first, i.e. on the left.
+You do not need to order the conditions yourself: within each `and()` or
+`or()`, qbamfilter automatically sorts the conditions by how expensive they
+are to evaluate, so cheap checks (e.g. FLAG fields) run before expensive ones
+(e.g. optional tags). Conditions of equal cost are evaluated in the order
+they appear in the query. Because the operators are commutative, this
+reordering does not change which records match.
 
 ## Example Queries
 
@@ -167,16 +170,18 @@ _Example:_ match records where average base quality is less than 20
 qual_average < 20
 ~~~~
 
-### TLEN
+### TLEN (ISIZE)
+
+The template length (TLEN) field is queried with the key `isize`.
 
 Key | Comparator | Value
 ----|------------|------
-TLEN|`==`<br>`!=`<br>`>=`<br>`<=`<br>`>`<br>`<`|integer
+isize|`==`<br>`!=`<br>`>=`<br>`<=`<br>`>`<br>`<`|integer
 
-_Example:_ match records with template size arger than 1000
+_Example:_ match records with template size larger than 1000
 
 ~~~~{.text}
-TLEN > 1000
+isize > 1000
 ~~~~
 
 ### POS
@@ -193,31 +198,38 @@ inclusive
 and( pos >= 1000, pos <= 2000 )
 ~~~~
 
-### RNAME, RNEXT
+### RNAME, MRNM (RNEXT)
+
+The mate's reference sequence name (RNEXT) field is queried with the key
+`MRNM`.
 
 Key | Comparator | Value
 ----|------------|------
-RNAME<br>RNEXT|`==`<br>`!=`|string (exact match)
-|`=~`<br>`!~`|string (wildcard '*' at start or end of string)
+RNAME<br>MRNM|`==`<br>`!=`|string (exact match)
+|`=~`<br>`!~`|string (a single wildcard '*' at start or end of string means "ends with" or "starts with"; no '*' means "contains")
+
+To compare a read's reference with its mate's reference, use the literal
+value `MRNM` with the `RNAME` key (or the literal value `RNAME` with the
+`MRNM` key), e.g. `RNAME != MRNM`.
 
 _Example 1:_ match records that mapped to the X chromosome
 
 ~~~~{.text}
-RNAME == chr1
+RNAME == chrX
 ~~~~
 
 _Example 2:_ match records where the paired read maps to a different
 sequence
 
 ~~~~{.text}
-RNAME != RNEXT
+RNAME != MRNM
 ~~~~
 
 _Example 3:_ match records where the paired read maps to a different
 sequence and one of the reads in the pair mapped to chromosome X
 
 ~~~~{.text}
-and( RNAME != RNEXT, or( RNAME == chrX, RNEXT == X ) )
+and( RNAME != MRNM, or( RNAME == chrX, MRNM == chrX ) )
 ~~~~
 
 ### Optional Fields
@@ -233,7 +245,7 @@ Key | Comparator | Value
 ----|------------|------
 option_<tag\>|`==`<br>`!=`<br>`>=`<br>`<=`<br>`>`<br>`<`|integer
 |`==`<br>`!=`|string (exact match)
-|`=~`<br>`!~`|string (wildcard '*' at start or end of string)
+|`=~`<br>`!~`|string (a single wildcard '*' at start or end of string means "ends with" or "starts with"; no '*' means "contains")
 
 _Example 1:_ match records where the tag "ZM" has a value less than 2
 

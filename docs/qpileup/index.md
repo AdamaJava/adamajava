@@ -16,7 +16,7 @@ qpileup requires java 21 and (ideally) a multi-core machine. eg. 5 threads with 
   cd adamajava
   ~~~~
 
-*  Run gradle to build qsv and its dependent jar files:
+*  Run gradle to build qpileup and its dependent jar files:
   ~~~~{.text}
   ./gradlew :qpileup:build
   ~~~~
@@ -83,7 +83,7 @@ input_hdf = Req, path to the hdf file/s that will be merged.
 
 [view]
 ;multi element is allowed, but only one group will be taken.
-element = Opt, qpileup data element to view. see [strand summary table](ndex_latest.md#strand-summary).
+element = Opt, qpileup data element to view. see [strand summary table](hdf.md#strand-summary).
 group = Opt, Possible groups [forward, reverse, bases, quals, cigars, readStats]. 
 graph = (Deprecated) Opt, set to true if a html should be created . Def=false.
 stranded = (Deprecated) Opt, it accompany with gragh option. Def=false. 
@@ -92,8 +92,8 @@ graph_hdf = (Deprecated) Opt, hdf to view. Def = null.
 [metrics]
 min_bases = Req, minimum average coverage (base count) per reference position.
 temporary_dir = Req, directory that temporary files will be written to.
-bigwig_path = Opt, directory where wigToBigWig program is located. Def=null.
-chrom_sizes = Opt, file listing chromosome lengths for wigToBigWig conversion. Def=null.
+bigwig_path = Opt, directory where wigToBigWig program is located. Def=null. BigWig output is only produced when both bigwig_path and chrom_sizes are set.
+chrom_sizes = Opt, file listing chromosome lengths for wigToBigWig conversion. Def=null. Must be set together with bigwig_path.
 
 [metrics/clip]
 position_value = Req, minimum value as percent of total bases per position
@@ -104,6 +104,11 @@ position_value = Req, minimum value as percent of total bases per position
 window_count = Req, minimum number of positions that pass the position_value in the window
 
 [metrics/indel]
+position_value = Req, minimum value as percent of total bases per position
+window_count = Req, minimum number of positions that pass the position_value in the window
+
+[metrics/unmapped_mate]
+; reads whose mate is unmapped (MateUnmapped element)
 position_value = Req, minimum value as percent of total bases per position
 window_count = Req, minimum number of positions that pass the position_value in the window
 
@@ -138,7 +143,7 @@ fits into 3 categories: [position](hdf.md), [strand summary](hdf.md) and [metada
 #### [Modes](ini.md)
 Mode | Description
 -----| -----------
-[`bootstrap`](ini.md##bootstrap) | mode creates a qpileup HDF5 file for a reference genome.
+[`bootstrap`](ini.md#bootstrap) | mode creates a qpileup HDF5 file for a reference genome.
 [`add`](ini.md#add) | add BAM files pileup counts to existing HDF5 file. 
 [`remove`](ini.md#remove) | remove BAM files pileup counts to existing HDF5 file. 
 [`view`](ini.md#view) | metrics from a qpileup HDF5 file and writes to a CSV file.
@@ -150,10 +155,10 @@ Mode | Description
 
 ~~~~
 #view version
-java -jar qpileup.jar  --view --hdf-vesion --hdf /path/testhdf.h5
+java -jar qpileup.jar  --view --hdf-version --hdf /path/testhdf.h5
 
 #View header
-java  -jar qpileup.jar  --view -hdf-header --hdf /path/testhdf.h5
+java  -jar qpileup.jar  --view --hdf-header --hdf /path/testhdf.h5
 
 #View pileup on region of chromosome
 java -Xmx20g -jar qpileup.jar  --view --hdf /path/testhdf.h5 --range chr1:1-1000

@@ -153,14 +153,14 @@ This mode walks through both the normal and tumour bam files applying a filter (
 
 Multi-threaded - requires 5 threads (2 to read the 2 input bams, 2 to accumulate the information, and another to determine if there is sufficient evidence of a mutation)
 
-An example ini file for standard mode can be found [here](qsnp_ini#standard-mode)
+An example ini file for standard mode can be found [here](qsnp_ini.md#standard-mode)
 
 <a name="vc_mode"></a>
 ### VCF Mode
 
 In VCF mode, qsnp takes a pair (tumour, normal) of VCF files from GATK's UnifiedGenotyer/HaplotypeCaller VCF files, and uses those to create a single vcf file containing somatic and germline mutations, along with any additional information (eg. novel starts counts) which can be used to further filter snp records. The original test and control bams are also required as input parameters in the ini file.
 
-An example ini file for vcf mode can be found [here](qsnp_ini#vcf-mode)
+An example ini file for vcf mode can be found [here](qsnp_ini.md#vcf-mode)
 
 <a name="mu_mode"></a>
 ### Mutect Mode
@@ -174,7 +174,7 @@ In this mode, qsnp takes the output from [MuTect](http://www.broadinstitute.org/
 Each of the qsnp modes requires that an ini file and log file be passed as the only arguments to the program.
 The [INI](http://en.wikipedia.org/wiki/INI_file) file is in the classic format originally popularised by the Windows operating system and subsequently deprecated in favour of the registry and/or XML config files. The basic file layout is one or more sections, each of which starts with a section title enclosed in square braces and sitting as the first and only element on a line. Each section has 1 or more properties, each of which is a name/value pair with an "=" char used as separator.
 
-Please [click here](qsnp_ini/) for further information including example ini files for each of the qsnp modes.
+Please [click here](qsnp_ini.md) for further information including example ini files for each of the qsnp modes.
 
 
 ### Output
@@ -228,7 +228,7 @@ AC | allele count: lists number of reads on forward strand avg base quality, rev
 
 ### Internal
 
-* [qbamfilter](../qbamfilter/) - used when filtering BAM file records
+* [qbamfilter](../qbamfilter/index.md) - used when filtering BAM file records
 
 ### External
 
