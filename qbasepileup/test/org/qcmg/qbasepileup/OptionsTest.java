@@ -179,4 +179,23 @@ public class OptionsTest {
 	}
 	
 	
+
+	@Test
+	public void compoundSnpModeDefaultsToDcc1() throws Exception {
+		String[] args = {"--log", log, "-i", input, "-r", reference, "-o", output, "-s", snps, "-m", "compoundsnp"};
+		assertEquals("dcc1", new Options(args).getFormat());
+	}
+
+	@Test(expected = QBasePileupException.class)
+	public void compoundSnpModeRejectsOtherFormats() throws Exception {
+		String[] args = {"--log", log, "-i", input, "-r", reference, "-o", output, "-s", snps, "-m", "compoundsnp", "-f", "maf"};
+		new Options(args);
+	}
+
+	@Test(expected = QBasePileupException.class)
+	public void snpCheckModeWithoutFormatIsRejected() throws Exception {
+		// snpcheck needs -f maf; without -f, the default (dcc1) is rejected rather than causing a NullPointerException
+		String[] args = {"--log", log, "-i", input, "-r", reference, "-o", output, "-s", snps, "-m", "snpcheck"};
+		new Options(args);
+	}
 }

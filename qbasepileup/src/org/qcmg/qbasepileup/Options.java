@@ -106,7 +106,7 @@ public class Options {
 		parser.accepts("gatk", Messages.getMessage("OPTION_GATK"));
 		parser.accepts("it", Messages.getMessage("OPTION_INPUT_TUMOUR")).withRequiredArg().ofType(String.class).describedAs("bam file");
 		parser.accepts("in", Messages.getMessage("OPTION_INPUT_NORMAL")).withRequiredArg().ofType(String.class).describedAs("bam file");
-		parser.accepts("pd", Messages.getMessage("OPTION_INPUT_NORMAL")).withRequiredArg().ofType(String.class).describedAs("pindel_deletions");
+		parser.accepts("pd", Messages.getMessage("OPTION_PINDEL_DELETIONS")).withRequiredArg().ofType(String.class).describedAs("pindel_deletions");
 
 		//coverage
 		parser.accepts("mincov", Messages.getMessage("OPTION_MIN_COV")).withRequiredArg().ofType(Integer.class);
@@ -167,6 +167,10 @@ public class Options {
 			}	
 
 
+			if (format == null) {
+				format = "dcc1";
+			}
+
 			if (mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) && ! format.equals("dcc1")) {
 				throw new QBasePileupException("COMP_FILE_FORMAT_ERROR");
 			}
@@ -175,9 +179,6 @@ public class Options {
 				throw new QBasePileupException("CHECK_FILE_FORMAT_ERROR");
 			}
 
-			if (format == null) {
-				format = "dcc1";
-			}
 			if (outputFormat == 2) {
 				format = "columns";
 			}
@@ -336,9 +337,6 @@ public class Options {
 			tumourBam = new InputBAM(null, null, new File((String) options.valueOf("it")), inputType);
 			normalBam = new InputBAM(null, null, new File((String) options.valueOf("in")), inputType);			
 
-			if (options.has("pd") || options.has("pi")) {
-				Map<String, String[]> pindelMutations = getPindelMutations(options);
-			}		
 
 		}	
 
@@ -383,64 +381,6 @@ public class Options {
 
 	public Integer getOutputFormat() {
 		return outputFormat;
-	}
-
-	private Map<String, String[]> getPindelMutations(OptionSet options) throws IOException {
-		Map<String, String[]> pindelMutations = new HashMap<>();
-
-		if (options.has("pd")) {
-			File file = new File((String)options.valueOf("pd"));			
-			readPindelMutationFile(pindelMutations, file, "DEL");
-		}
-		if (options.has("pi")) {
-			File file = new File((String)options.valueOf("pi"));
-			readPindelMutationFile(pindelMutations, file, "INS");
-		}
-		return pindelMutations;
-	}
-
-	private void readPindelMutationFile(Map<String, String[]> pindelMutations,
-			File file, String type) throws IOException {
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			String line;
-			List<String> lines = new ArrayList<>();
-			while ((line = reader.readLine()) != null) {
-				if (line.startsWith("####")) {
-					if (lines.size() > 0) {
-						String[] infos = lines.get(0).split("\t");
-						String chr = infos[3].replace("ChrID ", "");
-						int start = Integer.parseInt(infos[4].replace("BP ", ""));
-						int end = Integer.parseInt(infos[5].replace("BP ", ""));
-						if ("DEL".equals(type)) {
-							start++;
-							end--;
-						}
-						String key = chr + ":" + start + ":" + end + ":" + type;
-						StringBuilder normal = new StringBuilder();
-						StringBuilder tumour = new StringBuilder();
-						int normalCount = 0;
-						int tumourCount = 0;
-						for (int i=2; i<lines.size(); i++) {
-							String[] subLines = lines.get(i).split("\t");
-							String bam = subLines[subLines.length - 2];
-							String name = subLines[subLines.length - 1].replace("@", "");
-							if (bam.contains("Normal")) {
-								normal.append(name).append(";");
-								normalCount++;
-							} else {
-								tumour.append(name).append(";");
-								tumourCount++;
-							}
-						}
-						String[] out = {tumourCount + ";" + normalCount, tumour.toString(), normal.toString()};
-						pindelMutations.put(key, out);
-					}
-					lines.clear();
-				} else {
-					lines.add(line);
-				}
-			}
-		}
 	}
 
 	public Integer getMaxCoverage() {
