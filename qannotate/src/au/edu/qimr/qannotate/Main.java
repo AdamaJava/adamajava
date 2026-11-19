@@ -5,6 +5,10 @@
  */
 package au.edu.qimr.qannotate;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 
@@ -32,36 +36,19 @@ public class Main {
             logger = QLoggerFactory.getLogger(Main.class, options.getLogFileName(), options.getLogLevel());
             logger.logInitialExecutionStats(options.getPGName(), options.getVersion(), args);
 
-            checkOptions(options);
-
-            if (options.getMode() == Options.MODE.dbsnp) {
-                new DbsnpMode(options);
-            } else if (options.getMode() == Options.MODE.germline) {
-                new GermlineMode(options);
-            } else if (options.getMode() == Options.MODE.snpeff) {
-                new SnpEffMode(options);
-            } else if (options.getMode() == Options.MODE.confidence) {
-                new ConfidenceMode(options);
-            } else if (options.getMode() == Options.MODE.ccm) {
-                new CCMMode(options);
-            } else if (options.getMode() == Options.MODE.vcf2maf) {
-                new Vcf2maf(options);
-            } else if (options.getMode() == Options.MODE.cadd) {
-                new CaddMode(options);
-            } else if (options.getMode() == Options.MODE.indelconfidence) {
-                new IndelConfidenceMode(options);
-            } else if (options.getMode() == Options.MODE.hom) {
-                new HomopolymersMode(options);
-            } else if (options.getMode() == Options.MODE.trf) {
-                new TandemRepeatMode(options);
-            } else if (options.getMode() == Options.MODE.make_valid) {
-                new MakeValidMode(options);
-            } else if (options.getMode() == Options.MODE.overlap) {
-                new OverlapMode(options);
-            } else if (options.getMode() == null) {
+            List<Options.MODE> modes = options.getModes();
+            if (modes.isEmpty()) {
                 throw new IllegalArgumentException("No mode was specified on the commandline - please add the \"-mode\" option");
+            }
+            if (modes.size() > 1 && (modes.contains(Options.MODE.vcf2maf) || modes.contains(Options.MODE.vcf2maftmp))) {
+                throw new IllegalArgumentException("Multiple mode runs do not support vcf2maf/vcf2maftmp");
+            }
+
+            if (modes.size() == 1) {
+                checkOptions(options);
+                runMode(options);
             } else {
-                throw new IllegalArgumentException("No valid mode are specified on commandline - please run \"qannotate -help\" to see the list of available modes");
+                runMultipleModes(args, modes, options.getInputFileName(), options.getOutputFileName());
             }
 
             logger.logFinalExecutionStats(0);
@@ -76,6 +63,129 @@ public class Main {
             }
             System.out.println("About to return exit code of 1");
             System.exit(1);
+        }
+    }
+
+    static void runMultipleModes(String[] args, List<Options.MODE> modes, String inputFile, String outputFile) throws Exception {
+        String currentInput = inputFile;
+        List<File> tempFiles = new ArrayList<>();
+        List<String> databaseArgs = extractDatabaseArgs(args);
+        int databaseIndex = 0;
+        for (int i = 0 ; i < modes.size() ; i++) {
+            boolean finalMode = i == modes.size() - 1;
+            String currentOutput;
+            if (finalMode) {
+                currentOutput = outputFile;
+            } else {
+                File tmp = File.createTempFile("qannotate-mode-" + i + "-", ".vcf");
+                tmp.deleteOnExit();
+                tempFiles.add(tmp);
+                currentOutput = tmp.getAbsolutePath();
+            }
+            List<String> modeDatabaseArgs = new ArrayList<>();
+            if (modeUsesDatabase(modes.get(i)) && databaseIndex < databaseArgs.size()) {
+                modeDatabaseArgs.add(databaseArgs.get(databaseIndex++));
+            }
+            Options modeOptions = new Options(rewriteArgsForMode(args, modes.get(i), currentInput, currentOutput, modeDatabaseArgs));
+            checkOptions(modeOptions);
+            runMode(modeOptions);
+            currentInput = currentOutput;
+        }
+        for (File temp : tempFiles) {
+            if (temp.exists() && ! temp.delete()) {
+                temp.deleteOnExit();
+            }
+        }
+    }
+
+    static String[] rewriteArgsForMode(String[] args, Options.MODE mode, String inputFile, String outputFile, List<String> databaseArgs) {
+        List<String> newArgs = new ArrayList<>();
+        for (int i = 0 ; i < args.length ; i++) {
+            String arg = args[i];
+            if (isOptionWithValue(arg, "mode", "input", "i", "o", "output", "d", "database")) {
+                i++;
+                continue;
+            }
+            if (arg.startsWith("--mode=") || arg.startsWith("--input=") || arg.startsWith("-i=")
+                    || arg.startsWith("--output=") || arg.startsWith("-o=") || arg.startsWith("-output=")
+                    || arg.startsWith("--database=") || arg.startsWith("-d=")) {
+                continue;
+            }
+            newArgs.add(arg);
+        }
+        newArgs.add("--mode");
+        newArgs.add(mode.name());
+        newArgs.add("-i");
+        newArgs.add(inputFile);
+        newArgs.add("-o");
+        newArgs.add(outputFile);
+        for (String databaseArg : databaseArgs) {
+            newArgs.add("-d");
+            newArgs.add(databaseArg);
+        }
+        return newArgs.toArray(new String[0]);
+    }
+
+    static List<String> extractDatabaseArgs(String[] args) {
+        List<String> databaseArgs = new ArrayList<>();
+        for (int i = 0 ; i < args.length ; i++) {
+            String arg = args[i];
+            if (arg.equals("-d") || arg.equals("--database")) {
+                if (i + 1 < args.length) {
+                    databaseArgs.add(args[++i]);
+                }
+            } else if (arg.startsWith("-d=")) {
+                databaseArgs.add(arg.substring(3));
+            } else if (arg.startsWith("--database=")) {
+                databaseArgs.add(arg.substring(11));
+            }
+        }
+        return databaseArgs;
+    }
+
+    private static boolean modeUsesDatabase(Options.MODE mode) {
+        return switch (mode) {
+            case dbsnp, germline, snpeff, cadd, trf, hom, overlap, make_valid, indelconfidence -> true;
+            default -> false;
+        };
+    }
+
+    private static boolean isOptionWithValue(String arg, String... options) {
+        for (String option : options) {
+            if (arg.equals("-" + option) || arg.equals("--" + option)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void runMode(Options options) throws Exception {
+        if (options.getMode() == Options.MODE.dbsnp) {
+            new DbsnpMode(options);
+        } else if (options.getMode() == Options.MODE.germline) {
+            new GermlineMode(options);
+        } else if (options.getMode() == Options.MODE.snpeff) {
+            new SnpEffMode(options);
+        } else if (options.getMode() == Options.MODE.confidence) {
+            new ConfidenceMode(options);
+        } else if (options.getMode() == Options.MODE.ccm) {
+            new CCMMode(options);
+        } else if (options.getMode() == Options.MODE.vcf2maf) {
+            new Vcf2maf(options);
+        } else if (options.getMode() == Options.MODE.cadd) {
+            new CaddMode(options);
+        } else if (options.getMode() == Options.MODE.indelconfidence) {
+            new IndelConfidenceMode(options);
+        } else if (options.getMode() == Options.MODE.hom) {
+            new HomopolymersMode(options);
+        } else if (options.getMode() == Options.MODE.trf) {
+            new TandemRepeatMode(options);
+        } else if (options.getMode() == Options.MODE.make_valid) {
+            new MakeValidMode(options);
+        } else if (options.getMode() == Options.MODE.overlap) {
+            new OverlapMode(options);
+        } else {
+            throw new IllegalArgumentException("No valid mode are specified on commandline - please run \"qannotate -help\" to see the list of available modes");
         }
     }
 
